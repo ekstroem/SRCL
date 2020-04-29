@@ -367,7 +367,7 @@ SRCL_5_layerwise_relevance_propagation <- function(X,model) {
   U_B = NULL
 
   H_all <- relu(t(t(as.matrix(X) %*% as.matrix(model[[1]])) + as.vector(model[[2]])))
-  o_all = relu(as.vector(H_all %*% model[[3]][,1] + as.vector(model[[4]][1,1])))
+  o_all = as.vector(H_all %*% model[[3]][,1] + as.vector(model[[4]][1,1]))
 
   for (i in 1:nrow(X)) {
     if (i / 1000 == i %/% 1000) {print(i)}

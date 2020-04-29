@@ -121,7 +121,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
       h = rcpprelu((x.row(row) * (W1)) + B1);
 
       // Now do the same to get the output layer
-      o(row) = rcpprelu(h * W2 + B2)(0,0);
+      o(row) = rcpprelu(h * W2 + B2)(0,0); // the relu function is redundant
 
       // Okay ... Forward done ... Now we need to back propagate
       double E_outO = - (y(row) - o(row));
@@ -284,7 +284,7 @@ Rcpp::List SRCL_cpp_train_network_relu_with_confounder(
       h = rcpprelu((x.row(row) * (W1)) + B1);
 
       // Now do the same to get the output layer
-      o(row) = rcpprelu(h * W2 + B2 + c.row(row)*C2)(0,0);
+      o(row) = rcpprelu(h * W2 + B2 + c.row(row)*C2)(0,0); // the relu function is redundant
 
       // Okay ... Forward done ... Now we need to back propagate
       double E_outO = - (y(row) - o(row));
