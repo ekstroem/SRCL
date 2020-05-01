@@ -2,7 +2,7 @@
 % Please edit documentation in R/SRCL_functions.R
 \name{SRCL_1_initiate_neural_network}
 \alias{SRCL_1_initiate_neural_network}
-\title{Initiates a tailored monotonistc neural network}
+\title{Initiates a monotonistc neural network}
 \usage{
 SRCL_1_initiate_neural_network(inputs, hidden, confounder = FALSE)
 }
@@ -14,7 +14,7 @@ SRCL_1_initiate_neural_network(inputs, hidden, confounder = FALSE)
 \item{confounder}{Allows to control away a confounder (connected to the output layer)}
 }
 \description{
-This function initiates a tailored monotonistc neural network.
+This function initiates a monotonistc neural network. The one-hidden layer monotonistic neural network is designed to resemble a DAG with hidden synergistic components. With the model, we intend to learn the various synergistic interactions between the exposures and outcome. The model needs to be monotonistic and estimate the risk on an additive scale. Neural networks include hidden activation functions (if the sum of the input exceeds a threshold, information is passed on), which can model minimum threshold values of interactions between exposures. We need to specify the upper limit of the number of possible hidden activation functions and through model fitting, the model may be able to learn both stand-alone and synergistically interacting factors.
 }
 \examples{
 #See the example under SRCL_0_motivating_example
