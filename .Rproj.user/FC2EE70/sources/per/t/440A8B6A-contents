@@ -801,7 +801,7 @@ axis(1)
 abline(v=(0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)) / ((1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (0.8-0.2*0.2)*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100)
 ```
 
-**[A mistake in the data generation has been corrected, but not updated for the repeated simulations, which we need to rerun - am under the impression that we will still see an underestimation] >**When running the data generating process and phase 2 for 40 simulations (Supplementary material), we can identify both combinations of component causes in 37 simulations. The mean estimation of proportion of cases due to not *non-smoking* and *LDL* and *Night shift* was `r format(round(mean(c2),1),nsmall=1)` (`r round(fit2$conf.int[1],1)`-`r round(fit2$conf.int[2],1)`)%, where the theoretical proportion would be `r round(( (0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)) / ((1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (0.8-0.2*0.2)*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100),1)`%. The mean estimation of proportion of cases due to *Mutation X* and *Air pollution* was `r format(round(mean(c1),1),nsmall=1)` (`r round(fit1$conf.int[1],1)`-`r round(fit1$conf.int[2],1)`)%, where the theoretical proportion of cases would be `r round(((0.1 * (0.05*0.95)*(0.2*0.3+0.2)) / (1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100,1)`%. These results indicate that the true proportion of cases is consistently underestimated. Finite sample sizes and noise signals could cause an underestimation of the true proportion of cases. **< [This section has to be updated]**
+**[A mistake in the data generation has been corrected, but not updated for the repeated simulations yet] >**When running the data generating process and phase 2 for 40 simulations (Supplementary material), we can identify both combinations of component causes in 37 simulations. The mean estimation of proportion of cases due to not *non-smoking* and *LDL* and *Night shift* was `r format(round(mean(c2),1),nsmall=1)` (`r round(fit2$conf.int[1],1)`-`r round(fit2$conf.int[2],1)`)%, where the theoretical proportion would be `r round(( (0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)) / ((1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (0.8-0.2*0.2)*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100),1)`%. The mean estimation of proportion of cases due to *Mutation X* and *Air pollution* was `r format(round(mean(c1),1),nsmall=1)` (`r round(fit1$conf.int[1],1)`-`r round(fit1$conf.int[2],1)`)%, where the theoretical proportion of cases would be `r round(((0.1 * (0.05*0.95)*(0.2*0.3+0.2)) / (1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100,1)`%. These results indicate that the true proportion of cases is consistently underestimated. Finite sample sizes and noise signals could cause an underestimation of the true proportion of cases. **< [To be updated]**
 
 
 
@@ -908,60 +908,6 @@ AR was supported by an international postdoc grant by the Independent Research F
 # Supplementary materials
 
 
-
-
-##  Data generation for the SRCL demonstration
-
-```{r,echo=T,eval=F}
-### The data generating process
-data_gen<- function(n) {
-  Genes = sample(1:0,n,prob=c(0.05,0.95),replace=TRUE)
-  Living_area = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
-  Low_SES = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
-  Non_smoking = sample(1:0,n,prob=c(0.8,0.2),replace=TRUE)
-  for (i in 1:n) {
-      if (Low_SES[i] == 1 & sample(1:0,1,prob=c(.2,.8)) ) Non_smoking[i] <- 0
-  }  
-  Mutation_X = rep(0,n)
-  for (i in 1:n) {
-    if (Genes[i] == 1 & sample(1:0,1,prob=c(.95,.05)) ) Mutation_X[i] <- 1
-  }  
-  LDL = sample(1:0,n,prob=c(0.3,0.7),replace=TRUE)
-  for (i in 1:n) {
-    if (Genes[i] == 1 & sample(1:0,1,prob=c(.15,.85)) ) LDL[i] <- 1
-  }
-  Night_shifts = sample(1:0, n, prob = c(0.2, 0.8), replace = TRUE)
-  for (i in 1:n) {
-    if (Living_area[i] == 1 & sample(1:0, 1, prob = c(0.1,0.9))) Night_shifts[i] <- 1
-    if (Low_SES[i] == 1 & sample(1:0, 1, prob = c(0.1, 0.9))) Night_shifts[i] <- 1
-  }
-  Air_pollution = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
-  for (i in 1:n) {
-    if (Living_area[i] == 1 & sample(1:0,1,prob=c(.3,.7)) ) Air_pollution[i] <- 1
-  }  
-  Y <-  sample(1:0,n,prob=c(0.05,0.95),replace = TRUE)
-  for (i in 1:n) {
-    if (Non_smoking[i] == 0 & LDL[i] == 1 & Night_shifts[i] == 1 &
-        sample(1:0,1,prob=c(.15,0.85)) ) {
-      Y[i] <- 1
-    }
-    if (Mutation_X[i] == 1 & Air_pollution[i] == 1 & sample(1:0,1,prob=c(.1,0.9)) ) {
-      Y[i] <- 1
-    }
-  }
-  C = rep(0,n)  
-  data <- data.frame(Y,Non_smoking,Low_SES,Mutation_X,LDL,Night_shifts,Air_pollution,C)
-  for (i in 1:ncol(data))   data[,i] <- as.numeric(data[,i])
-  return(data)
-}
-### Generates a population of 40000
-  data <- data_gen(40000)
-```
-
-
-
-\newpage
-
 ## Initial values, derivatives, and learning rates
 
 The error is defined as the output minus the predicted value and denoted $E$, the output is denoted $O$, the value taken by each of the hidden $ReLU()_j$ activation functions are denoted $H_j$, the pre-hidden $ReLU()_j$ activation function values are denoted $h_j$, the weights are denoted $w_{i,j}$ and $w_{j,k}$, the intercepts for the hidden $ReLU()_j$ activation functions are denoted $b_j$, the baseline risk is denoted $R^b$, and the exposures are denoted $X_i^+$.
@@ -984,11 +930,135 @@ kable(values)
 
 Where: $\frac{\delta E}{\delta O} = O - Y, \frac{\delta O}{\delta w_{j,k}} = H_j, \frac{\delta O}{\delta H_{j}} = w_{j,k}, \frac{\delta H_j}{\delta h_j} = 1$ if $H_j$ > 0 otherwise 0, $\frac{\delta h_j}{\delta w_{i,j}}=X_i^+$
 
+\newpage
+
+## Control for a constant effect of a confounder as all individuals were exposed to its reference level
+To control for a constant effect of a confounder as all individuals were exposed to its reference level (e.g. calendar time), we need to assume it does not interact with any of the exposures. This may allow us to focus on the exposures of interest for the cluster analysis as had all individuals had the same reference level of the confounder. In this case, we connect the confounder to the output layer as in below figure. The SRCL R package also facilitates this approach.
+
+In below figure, the $C$ denotes a confounder. Given below causal structure, the average causal effect in the total population for being exposed to combination a of the exposures compared with combination b of the exposures is thus given by $P(Y_{X_a,C=0})-P(Y)_{baseline} = P(Y=1|X^+_a,C^+=0) - P(Y=1|X^+=0,C^+=0)$.
+
+![](Figures/combined_models_confounder.jpg){width=100%}
+
+This changes the denotation of the fitted monotonistic neural network to:
+
+$$P(Y=1|X^+,C^+)=\sum_{j}\Big(w_{j,k}relu_j\big(\sum_{i}(w_{ij}X_i^+) + b_j\big)\Big) + c^+C^+ + R^b$$
+
+We then decompose the predicted risk had $C^+$ been its reference of zero, $P(Y=1|X^+,C=0)$ into the reference baseline risk, $R^b$, and the risk contributions of exposures, $R^X_i$:
+
+$$P(Y=1|X^+,C^+=0)=R^b+\sum_iR^X_i$$
+
+The decomposition of the risk contributions for exposures, $R^X_i$, now takes these 3 steps:
+
+Step 1 - Subtract the baseline risk, $R^b$: $R^X_k =  P(Y=1|X^+,C^+=0)-R^b$
+
+Step 2 - Decompose to the hidden layer: $R^{X}_j =  \frac{H_j w_{j,k}}{\sum_j(H_j w_{j,k})} R^X_k$
+
+<!--
+$$R^X_j =  \frac{H_j e^{w_{j,k}}}{\sum_j(H_j e^{w_{j,k}})} \Big(P(Y=1|X)-f_k(b_k)\Big)$$
+-->
+
+*Where $H_j$ is the value taken by each of the $relu()_j$ functions for the specific individual.*
+
+Step 3 - Hidden layer to exposures: $R^{X}_i = \sum_j \Big(\frac{X_i^+ w_{i,j}}{\sum_i( X_i^+ w_{i,j})}R^X_j\Big)$
+
+This creates a *risk contribution matrix* with row length equal to the number of individuals and column length equal to the number of exposures plus a baseline risk value minus the confounder. The following R code shows an example:
+
+```{r, echo=T,eval=F}
+gen_data <- function(n) {
+  data <- data.frame(V1 = sample(0:1,n,replace = T))
+  for (i in 1:15) {data[,i] <- sample(0:1,n,replace = TRUE, prob = c(0.7,0.3))}
+  C = as.numeric(sample(0:1,n,replace=TRUE,prob = c(0.5,0.5)))
+  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.7,0.3))==1) {
+    data[i,2] <- 1}}
+  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {
+    data[i,12] <- 1}}
+  data$Y <-  sample(0:1,n,replace = T, prob = c(0.95,0.05))
+  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {
+    data$Y[i] <- 1}}
+  for (i in 1:nrow(data)) {if (data[i,10]==1 & sample(0:1,1,prob = c(0.95,0.05))==1) {
+    data$Y[i]<- 1}}
+  for(i in 1:ncol(data)) {data[,i] <- as.numeric(data[,i])}
+  data$C <- C
+  data <- data[,c(16,1:15,17)]
+  return(data)
+}
+# Make sure the devtools package is installed
+devtools::install_github("ekstroem/SRCL")
+library(SRCL)
+data <- gen_data(10000)
+c <- data$C
+data <- data[,-ncol(data)]
+# Code data monotonisticly
+lm(Y~.,data)
+recode <- lm(Y~.,data)$coefficients<0
+for (i in 2:ncol(data)) {
+  if(recode[i]==TRUE) colnames(data)[i] <- paste0("Not_",colnames(data)[i])
+  if(recode[i]==TRUE) data[,i] = 1 - data[,i]}
+summary(lm(Y~.,data))
+exposure_data <- data[,-1]
+outcome_data <- data[,1]
+# Model fit without the confounder
+model <- SRCL_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
+for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
+  model <- SRCL_train_neural_network(exposure_data,outcome_data,model,
+          lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)}
+# Model visualisation
+SRCL_plot_neural_network(model,names(exposure_data),5)
+# Should only be influenced by V10...
+# Model fit with the confounder
+model <- SRCL_initiate_neural_network(inputs=ncol(exposure_data),hidden=5,confounder=TRUE)
+for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
+  model <- SRCL_train_neural_network_with_confounder(exposure_data,outcome_data,c,model,
+          lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
+}
+SRCL_plot_neural_network(model,names(exposure_data),5)
+# Only information comes from V10 now.
+
+```
+
 
 \newpage
 
+##  Data generation for the SRCL demonstration
+
+```{r,echo=T,eval=F}
+### The data generating process
+data_gen<- function(n) {
+  Genes = sample(1:0,n,prob=c(0.05,0.95),replace=TRUE)
+  Living_area = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+  Low_SES = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+  Non_smoking = sample(1:0,n,prob=c(0.8,0.2),replace=TRUE)
+  for (i in 1:n) {if (Low_SES[i] == 1 & sample(1:0,1,prob=c(.2,.8))) Non_smoking[i] <- 0}  
+  Mutation_X = rep(0,n)
+  for (i in 1:n) {if (Genes[i] == 1 & sample(1:0,1,prob=c(.95,.05))) Mutation_X[i] <- 1}  
+  LDL = sample(1:0,n,prob=c(0.3,0.7),replace=TRUE)
+  for (i in 1:n) {if (Genes[i] == 1 & sample(1:0,1,prob=c(.15,.85))) LDL[i] <- 1 }
+  Night_shifts = sample(1:0, n, prob = c(0.2, 0.8), replace = TRUE)
+  for (i in 1:n) {
+    if (Living_area[i] == 1 & sample(1:0, 1, prob = c(0.1,0.9))) Night_shifts[i] <- 1
+    if (Low_SES[i] == 1 & sample(1:0, 1, prob = c(0.1, 0.9))) Night_shifts[i] <- 1 }
+  Air_pollution = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+  for (i in 1:n) {if (Living_area[i] == 1 & sample(1:0,1,prob=c(.3,.7)) ) 
+    Air_pollution[i] <- 1}  
+  Y <-  sample(1:0,n,prob=c(0.05,0.95),replace = TRUE)
+  for (i in 1:n) {
+    if (Non_smoking[i] == 0 & LDL[i] == 1 & Night_shifts[i] == 1 &
+        sample(1:0,1,prob=c(.15,0.85)) ) {Y[i] <- 1 }
+    if (Mutation_X[i] == 1 & Air_pollution[i] == 1 & sample(1:0,1,prob=c(.1,0.9))) {
+      Y[i] <- 1}}
+  C = rep(0,n)  
+  data <- data.frame(Y,Non_smoking,Low_SES,Mutation_X,LDL,Night_shifts,Air_pollution,C)
+  for (i in 1:ncol(data))   data[,i] <- as.numeric(data[,i])
+  return(data)
+}
+### Generates a population of 40000
+  data <- data_gen(40000)
+```
+
+
+
 ## Theoretical expectations to the SRCL demonstration
-**A: Please check if this is calculated correctly.**
+
 
 ```{r,echo=F}
 # Data simulation
@@ -1015,6 +1085,7 @@ $P(Y) =(1- (1 - P(Y|U)) \cdot  (1 - P(Y|MutationX,Airpollution)\cdot P(MutationX
 $\frac{P(Y|MutationX,Airpollution)\cdot P(MutationX,Airpollution)}{P(Y)}=$ `r P_Y_MA*P_MA / P_Y `
 
 $\frac{P(Y| Not Non Smoking,LDL,Night Shift) \cdot P(NotNonSmoking,LDL,Night Shift)}{P(Y)}=$ `r P_Y_SLN*P_SLN/P_Y`
+
 
 \newpage
 
@@ -1232,96 +1303,6 @@ These results indicate that we underestimate the true proportion of cases. Finit
 \newpage
 
 
-
-## Control for a constant effect of a confounder as all individuals were exposed to its reference level
-To control for a constant effect of a confounder as all individuals were exposed to its reference level (e.g. calendar time), we need to assume it does not interact with any of the exposures. This may allow us to focus on the exposures of interest for the cluster analysis as had all individuals had the same reference level of the confounder. In this case, we connect the confounder to the output layer as in below figure. The SRCL R package also facilitates this approach.
-
-In below figure, the $C$ denotes a confounder. Given below causal structure, the average causal effect in the total population for being exposed to combination a of the exposures compared with combination b of the exposures is thus given by $P(Y_{X_a,C})-P(Y_{X_b,C}) = P(Y=1|X^+_a,C^+) - P(Y=1|X^+_b,C^+)$.
-
-![](Figures/combined_models_confounder.jpg){width=100%}
-
-This changes the denotation of the fitted monotonistic neural network to:
-
-$$P(Y=1|X^+,C^+)=\sum_{j}\Big(w_{j,k}relu_j\big(\sum_{i}(w_{ij}X_i^+) + b_j\big)\Big) + c^+C^+ + R^b$$
-
-We then decompose the predicted risk had $C^+$ been its reference of zero, $P(Y=1|X^+,C=0)$ into the reference baseline risk, $R^b$, and the risk contributions of exposures, $R^X_i$:
-
-$$P(Y=1|X^+,C^+=0)=R^b+\sum_iR^X_i$$
-
-The decomposition of the risk contributions for exposures, $R^X_i$, now takes these 3 steps:
-
-Step 1 - Subtract the baseline risk, $R^b$:
-
-$$R^X_k =  P(Y=1|X^+,C^+=0)-R^b$$
-
-Step 2 - Decompose to the hidden layer: 
-
-$$R^{X}_j =  \frac{H_j w_{j,k}}{\sum_j(H_j w_{j,k})} R^X_k$$
-
-<!--
-$$R^X_j =  \frac{H_j e^{w_{j,k}}}{\sum_j(H_j e^{w_{j,k}})} \Big(P(Y=1|X)-f_k(b_k)\Big)$$
--->
-
-*Where $H_j$ is the value taken by each of the $relu()_j$ functions for the specific individual.*
-
-Step 3 - Hidden layer to exposures:
-
-$$R^{X}_i = \sum_j \Big(\frac{X_i^+ w_{i,j}}{\sum_i( X_i^+ w_{i,j})}R^X_j\Big)$$
-
-This creates a *risk contribution matrix* with row length equal to the number of individuals and column length equal to the number of exposures plus a baseline risk value minus the confounder. The following R code shows an example:
-
-```{r, echo=T,eval=F}
-gen_data <- function(n) {
-  data <- data.frame(V1 = sample(0:1,n,replace = T))
-  for (i in 1:15) {data[,i] <- sample(0:1,n,replace = TRUE, prob = c(0.7,0.3))}
-  C = as.numeric(sample(0:1,n,replace=TRUE,prob = c(0.5,0.5)))
-  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.7,0.3))==1) {
-    data[i,2] <- 1}}
-  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {
-    data[i,12] <- 1}}
-  data$Y <-  sample(0:1,n,replace = T, prob = c(0.95,0.05))
-  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {
-    data$Y[i] <- 1}}
-  for (i in 1:nrow(data)) {if (data[i,10]==1 & sample(0:1,1,prob = c(0.95,0.05))==1) {
-    data$Y[i]<- 1}}
-  for(i in 1:ncol(data)) {data[,i] <- as.numeric(data[,i])}
-  data$C <- C
-  data <- data[,c(16,1:15,17)]
-  return(data)
-}
-# Make sure the devtools package is installed
-devtools::install_github("ekstroem/SRCL")
-library(SRCL)
-data <- gen_data(10000)
-c <- data$C
-data <- data[,-ncol(data)]
-# Code data monotonisticly
-lm(Y~.,data)
-recode <- lm(Y~.,data)$coefficients<0
-for (i in 2:ncol(data)) {
-  if(recode[i]==TRUE) colnames(data)[i] <- paste0("Not_",colnames(data)[i])
-  if(recode[i]==TRUE) data[,i] = 1 - data[,i]}
-summary(lm(Y~.,data))
-exposure_data <- data[,-1]
-outcome_data <- data[,1]
-# Model fit without the confounder
-model <- SRCL_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
-for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
-  model <- SRCL_train_neural_network(exposure_data,outcome_data,model,
-          lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)}
-# Model visualisation
-SRCL_plot_neural_network(model,names(exposure_data),5)
-# Should only be influenced by V10...
-# Model fit with the confounder
-model <- SRCL_initiate_neural_network(inputs=ncol(exposure_data),hidden=5,confounder=TRUE)
-for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
-  model <- SRCL_train_neural_network_with_confounder(exposure_data,outcome_data,c,model,
-          lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
-}
-SRCL_plot_neural_network(model,names(exposure_data),5)
-# Only information comes from V10 now.
-
-```
 
 
 <!--
@@ -1597,5 +1578,7 @@ When we rerun the data generating process and the analytical SCL model, we get t
 \newpage
 
 -->
+
+\newpage
 
 # References
