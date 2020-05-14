@@ -2,7 +2,7 @@
 % Please edit documentation in R/SRCL_functions.R
 \name{SRCL_3_plot_neural_network}
 \alias{SRCL_3_plot_neural_network}
-\title{Plotting the monotonistic neural networks}
+\title{Plotting the monotonistic neural network}
 \usage{
 SRCL_3_plot_neural_network(model, names, arrow_size = 2)
 }

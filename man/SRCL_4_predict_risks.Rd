@@ -2,7 +2,7 @@
 % Please edit documentation in R/SRCL_functions.R
 \name{SRCL_4_predict_risks}
 \alias{SRCL_4_predict_risks}
-\title{Layer-wise relevance propagation of the fitted monotonistic neural network}
+\title{Predict the risk of the outcome using the fitted monotonistic neural network}
 \usage{
 SRCL_4_predict_risks(X, model)
 }
@@ -12,7 +12,7 @@ SRCL_4_predict_risks(X, model)
 \item{model}{The fitted the monotonistic neural network}
 }
 \description{
-Calculates risk contributions using layer-wise relevance propagation of the fitted monotonistic neural network and data
+Predict the risk of the outcome using the fitted monotonistic neural network
 }
 \examples{
 #See the example under SRCL_0_motivating_example

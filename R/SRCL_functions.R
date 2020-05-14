@@ -155,6 +155,7 @@ SRCL_0_motivating_example <- function(n) {
   Night_shifts = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
   for (i in 1:n) {
     if (Living_area[i] == 1 & sample(1:0,1,prob=c(.1,.9)) ) Night_shifts[i] <- 1
+    if (Low_SES[i] == 1 & sample(1:0,1,prob=c(.1,.9)) ) Night_shifts[i] <- 1
   }
   Air_pollution = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
   for (i in 1:n) {
@@ -239,7 +240,7 @@ SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
     for(rounds in 1:ceiling(c(epochs/plot_and_evaluation_frequency))) {
       model <- SRCL_cpp_train_network_relu(x=as.matrix(X),y=as.matrix(Y),testx=as.matrix(X),testy=as.matrix(Y),lr = lr, maxepochs  = plot_and_evaluation_frequency, W1_input = model[[1]],B1_input = model[[2]],W2_input = model[[3]],B2_input = model[[4]])
       performance <- c(performance,model$train_performance)
-      plot(performance, type='l',yaxs='i' ylab="Mean squared error",
+      plot(performance, type='l',yaxs='i', ylab="Mean squared error",
            xlab="Epochs",main="Performance")
       if(length(performance)-which.min(performance)>patience) break
     }

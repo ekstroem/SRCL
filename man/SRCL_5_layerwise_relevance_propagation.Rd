@@ -12,7 +12,7 @@ SRCL_5_layerwise_relevance_propagation(X, model)
 \item{model}{The fitted the monotonistic neural network}
 }
 \description{
-Calculates risk contributions using layer-wise relevance propagation of the fitted monotonistic neural network and data
+Calculates risk contributions for each exposure and a baseline using layer-wise relevance propagation of the fitted monotonistic neural network and data.
 }
 \examples{
 #See the example under SRCL_0_motivating_example
