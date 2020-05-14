@@ -1,6 +1,5 @@
 
 # Scope run - c++
-
 setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures")
 
 ############ C++ main results #################
@@ -8,106 +7,161 @@ library(SRCL)
 library(graphics)
 colours <- c("grey","dodgerblue","red","orange","green")
 
-
 # Data simulation
-    set.seed(123456789)
-    data <- SRCL_0_motivating_example(1000) # use 40 000 to replicate the paper
+set.seed(1234567)
+data <- SRCL_0_motivating_example(40000) # use 40 000 to replicate the paper
 
 # Code data monotonisticly
-    lm(Y~.,data)
-    recode <- lm(Y~.,data)$coefficients<0
-    for (i in 2:ncol(data)) {
-      if(recode[i]==TRUE) colnames(data)[i] <- paste0("Not_",colnames(data)[i])
-      if(recode[i]==TRUE) data[,i] = 1 - data[,i]
-    }
-    summary(lm(Y~.,data))
-    exposure_data <- data[,-1]
-    outcome_data <- data[,1]
+lm(Y~.,data)
+recode <- lm(Y~.,data)$coefficients<0
+for (i in 2:ncol(data)) {
+  if(recode[i]==TRUE) colnames(data)[i] <- paste0("Not_",colnames(data)[i])
+  if(recode[i]==TRUE) data[,i] = 1 - data[,i]
+}
+summary(lm(Y~.,data))
+exposure_data <- data[,-1]
+outcome_data <- data[,1]
 
 # Model fit
-    model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
-    for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
-      model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
-               lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
-    }
-
-    
-setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures")  ############## REMOVE
-png("motivating_network.png",unit="in",res=300,width = 10,height = 4)  ############## REMOVE
-par(mfrow=c(1,3))
-
-    # Performance
-      plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",xlab="Epochs",main="Performance")
-
-    # Model visualisation
-      SRCL_3_plot_neural_network(model,names(exposure_data),5)
-
-    # AUC
-      library(pROC)
-      pred <- SRCL_4_predict_risks(exposure_data,model)
-      plot(roc(outcome_data,pred),print.auc=TRUE)
-
-dev.off()  ############## REMOVE
+model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
+for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
+  model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
+                                       lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
+}
 
 # Risk contributions
-  r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
+r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
+sum(duplicated(r_c)==FALSE)
+
+# Clustering
+groups =3
+library(fastcluster)
+hc <- hclust(dist(r_c), method="ward.D") # RAM memory intensive
+clus <- cutree(hc, groups)
+p <- cbind(r_c,clus)
+p <- plyr::count(p)
+pfreq <- p$freq
+pclus <- p$clus
+p <- p[,-c(ncol(p)-1,ncol(p))]
+p <- hclust(dist(p),method = "ward.D", members=pfreq)
+par(mfrow=c(1,1))
+par(mar=c(5,5,5,5))
+library(ggtree)
+library(ggplot2)
+png("dendrogram.png",units = 'in',res=300,height = 4,width = 4)
+ggtree(p,layout="equal_angle") +
+  geom_tippoint(size=sqrt(pfreq)/2, alpha=.2, color=colours[pclus])+
+  ggtitle("Dendrogram") +
+  theme(plot.title = element_text(size = 15, face = "bold"))
+dev.off()
+# append the clusters to the full risk contribution matrix
 
 
-  # Clustering
-  summary(prcomp(r_c))
-  plot(prcomp(r_c))
-  plot(prcomp(r_c)$x[,1:2])
-  d_r_c <- as.data.frame(prcomp(r_c)$x[,1:2])
-  library(fastcluster)
-  p_d <- hclust(dist(d_r_c),"ward.D")
-  groups = 4
-  clus = cutree(p_d, groups)
-  plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=F)
+png("SCL.png",unit="in",res=300,width = 7,height = 8)  ############## REMOVE
+layout(matrix(c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,6,6,6), 3, 6, byrow = TRUE))
+
+# Performance
+par(mar=c(5,5,2,0))
+plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
+     xlab="Epochs",main="Performance")
+
+# Model visualisation
+par(mar=c(0,0,0,0))
+SRCL_3_plot_neural_network(model,names(exposure_data),5)
+
+# AUC
+library(pROC)
+par(mar=c(5,5,2,0))
+pred <- SRCL_4_predict_risks(exposure_data,model)
+plot(roc(outcome_data,pred),print.auc=TRUE,main="Accuracy")
 
 # Plot results
-png("SCL.png",unit="in",res=300,width = 10,height = 10)  ############## REMOVE
-        library(robustbase)
-        #par(mfrow=c(2,2)) # The combined plot plus one elaborative plot for each group
-        layout(matrix(c(1,2,3,3,4,4,5,5,6,6,7,7), 3, 4, byrow = TRUE))
-        par(mar=c(4,5,3,0))
-        plot(prcomp(r_c),main="PCA: Proportion of variance")
-        plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=F)
-        par(mar=c(4,12,3,4))
-        plot(0,0,type='n',xlim=c(0,1),asp=1,ylim=c(0,1),xaxs='i',yaxs='i',axes=FALSE,ylab="Risk",xlab="Exposed",frame.plot=FALSE,main="Combined plot")
-        axis(1,seq(0,1,.2));axis(2,seq(0,1,.2))
-        rect(0,0,1,1)
-        prev0 = 0; total = 0
-        colours <- c("grey","dodgerblue","red","orange","green")
-        for (i in 1:groups) {
-          prev <- sum(clus==i)/length(clus)
-          risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
-          rect(xleft = prev0,ybottom = 0,xright = prev+prev0,ytop = risk, col=colours[i])
-          prev0 = prev + prev0
-          total = total + risk * prev
-        }
-        arrows(x0=0,x1=1,y0=median(r_c$Baseline_risk),lty=1,length=0)
-        par(mar=c(3,10,5,3))
-        for (i in 1:groups) {
-          prev <- sum(clus==i)/length(clus)
-          risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
-          risk_obs <- mean(outcome_data[clus==i])
-          boxplot(r_c[clus==i,],horizontal = TRUE,las=2, outline = FALSE , range = 0.000000001,col=colours[i])
-          title(paste0("Elaborated plot - sub-group ",i,"\n","n=",sum(clus==i),", e=",sum(outcome_data[clus==i])," (prev=",round(prev*100,1),"%, risk=",round(risk*100),"%,\nexcess=",round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
-          "%,obs risk=",
-  #                     "round(risk_obs*100),
-                       paste0(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,2),collapse="-"),
-                       "%)"),col.main=colours[i])
-        }
-dev.off()   ############## REMOVE
+library(robustbase)
+library(imager)
+im <- load.image("dendrogram.png")
+par(mar=c(0,0,0,0))
+plot(im,axes=F)
+# par(mar=c(4,5,3,0))
+# plot(prcomp(r_c),main="PCA: Proportion of variance")
+# plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=FALSE)
+par(mar=c(4,5,2,1))
+plot(0,0,type='n',xlim=c(0,1),asp=1,ylim=c(0,1),xaxs='i',yaxs='i',
+     axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,main="Prevalence and mean risk of sub-groups")
+axis(1,seq(0,1,.2));axis(2,seq(0,1,.2))
+rect(0,0,1,1)
+prev0 = 0; total = 0
+for (i in 1:groups) {
+  prev <- sum(clus==i)/length(clus)
+#  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
+  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+  rect(xleft = prev0,ybottom = 0,xright = prev+prev0,ytop = risk, col=colours[i])
+  prev0 = prev + prev0
+  total = total + risk * prev
+}
+#arrows(x0=0,x1=1,y0=median(r_c$Baseline_risk),lty=1,length=0)
+arrows(x0=0,x1=1,y0=mean(r_c$Baseline_risk),lty=1,length=0)
+
+st <- 1.5
+d <- data.frame(matrix(NA, nrow=ncol(r_c)))
+for (g in 1:groups) {
+  for (i in 1:nrow(d)) {
+#    d[i,g] <- median(r_c[clus==g,i])
+    d[i,g] <- mean(r_c[clus==g,i])
+  }}
+d <- t(d)
+rownames(d) <- paste("Group",1:groups)
+colnames(d) <- names(r_c)
+par(mar=c(0,0,0,0))
+plot(0,0,type='n',xlim=c(-ncol(d)-5,0),ylim=c(-nrow(d)-1,1),axes=F)
+text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
+text(-ncol(d)-5,0,"Mean (SD) risk contributions\nby sub-group",pos=4,cex=st)
+#text(-ncol(d)-2,c(-1):c(-nrow(d)),rownames(d),col=colours[1:groups],cex=st)
+#par(mfrow=c(1,1))
+for (i in 1:groups) {
+  prev <- sum(clus==i)/length(clus)
+#  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
+  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+  risk_obs <- mean(outcome_data[clus==i])
+  text(-ncol(d)-5,-i,paste0("Sub-group ",i,"\n","n=",sum(clus==i),", e=",sum(outcome_data[clus==i])," (prev=",round(prev*100,1),"%, risk=",round(risk*100),"%,\nexcess=",
+                            #round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
+                            round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),
+                            "%,obs risk=",
+                            #                     "round(risk_obs*100),
+                            paste0(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,2),collapse="-"),
+                            "%)"),pos=4,col=colours[i])
+}
+m <- max(d)
+for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
+  value <- paste0(format(round(as.numeric(d[i,g]),2),nsmall=2),"\n(",
+                  format(round(sd(r_c[clus==i,g]),2),nsmall=2),")")
+#  value <- paste0(format(round(as.numeric(quantile(d[i,g],c(0.25,0.75))),2),nsmall=2),collapse = "-")
+  text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+}}
+dev.off()
 
 
 
 
 
 
-setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper")
-save.image("demo.RData")
-load("demo.RData")
+
+
+
+
+
+######
+pclus # lavet fra full
+r_c_r <- plyr::count(r_c)
+freq_r <- r_c_r$freq
+r_c_r <- r_c_r[,-ncol(r_c_r)]
+hc_r <- hclust(dist(r_c_r), method="ward.D",members = freq_r) # RAM memory intensive
+clus_r <- cutree(hc_r, groups)
+table(pclus,clus_r)
+######
+
+
+
+
 
 
 
@@ -199,10 +253,10 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
 
   library(SRCL)
   library(graphics)
-  
+
   # Data simulation
   data <- SRCL_0_motivating_example(40000) # use 40 000 to replicate the paper
-  
+
   # Code data monotonisticly
   lm(Y~.,data)
   recode <- lm(Y~.,data)$coefficients<0
@@ -213,18 +267,18 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   summary(lm(Y~.,data))
   exposure_data <- data[,-1]
   outcome_data <- data[,1]
-  
+
   # Model fit
   model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
   for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
     model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
                                          lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
   }
-  
+
   # Risk contributions
   r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
-  
-  
+
+
   # Clustering
   summary(prcomp(r_c))
   plot(prcomp(r_c))
@@ -233,11 +287,11 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   library(fastcluster)
 #  p_d <- hclust(dist(d_r_c),"ward.D")
   p_d <- hclust(dist(d_r_c),"average")
-  
+
   groups = 4
   clus = cutree(p_d, groups)
   plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=F)
-  
+
   # Plot results
   png(paste0("SCL_",run,".png"),unit="in",res=300,width = 10,height = 10)  ############## REMOVE
   library(robustbase)
@@ -274,13 +328,13 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
                  "%)"),col.main=colours[i])
   }
   dev.off()   ############## REMOVE
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
 }
 
 

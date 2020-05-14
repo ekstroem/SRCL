@@ -929,11 +929,12 @@ data_gen<- function(n) {
   LDL = sample(1:0,n,prob=c(0.3,0.7),replace=TRUE)
   for (i in 1:n) {
     if (Genes[i] == 1 & sample(1:0,1,prob=c(.15,.85)) ) LDL[i] <- 1
-  }  
-  Night_shifts = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+  }
+  Night_shifts = sample(1:0, n, prob = c(0.2, 0.8), replace = TRUE)
   for (i in 1:n) {
-    if (Living_area[i] == 1 & sample(1:0,1,prob=c(.1,.9)) ) Night_shifts[i] <- 1
-  }  
+    if (Living_area[i] == 1 & sample(1:0, 1, prob = c(0.1,0.9))) Night_shifts[i] <- 1
+    if (Low_SES[i] == 1 & sample(1:0, 1, prob = c(0.1, 0.9))) Night_shifts[i] <- 1
+  }
   Air_pollution = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
   for (i in 1:n) {
     if (Living_area[i] == 1 & sample(1:0,1,prob=c(.3,.7)) ) Air_pollution[i] <- 1
@@ -954,7 +955,7 @@ data_gen<- function(n) {
   return(data)
 }
 ### Generates a population of 40000
-  data <-data_gen(40000)
+  data <- data_gen(40000)
 ```
 
 
@@ -1049,7 +1050,7 @@ coefficients(summary(lm(Y~.,data)))
 
 ```{r}
 library(SRCL)
-set.seed(123456789)
+set.seed(1234567)
 data <- SRCL_0_motivating_example(40000)
 recode <- lm(Y~.,data)$coefficients<0
 for (i in 2:ncol(data)) {
@@ -1059,14 +1060,14 @@ for (i in 2:ncol(data)) {
 coefficients(summary(lm(Y~.,data)))
 ```
 
-We spilt data into one data set with exposures and one data set with the outcomes. Here $Y$ was at the first column.
+We split data into one data set with exposures and one data set with the outcomes. Here $Y$ was at the first column.
 
 ```{r,echo=T,eval=F}
 exposure_data <- data[,-1]
 outcome_data <- data[,1]
 ```
 
-We first initiate the monotonistic neural network with the number of exposures and potential hidden synergistic component causes. We then train the monotonistic neural network with different learning rates (lr) each for 1000 epichs. The model will however stop training when reaching when it has not improved for 10 epochs (the patience parameter) for each of the learning rates set. Model training is time consuming even with our optimised fitting functing. Seperating the initiation and trainin of the monotonistic neural network allows one to continue training the model at later time points.
+We first initiate the monotonistic neural network with the number of exposures and potential hidden synergistic component causes. We then train the monotonistic neural network with different learning rates (lr) each for 1000 epochs. The model will however stop training when reaching when it has not improved for 10 epochs (the patience parameter) for each of the learning rates set. Model training is time consuming even with our optimised fitting functoin. Seperating the initiation and trainin of the monotonistic neural network allows one to continue training the model at later time points.
 
 ```{r,echo=T,eval=F}
 # Model fit
@@ -1077,18 +1078,22 @@ for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
 }
 ```
 
-When the model is trained, we present the model training performance, an illustration of the network and a ROC plot as in Figure \ref{fig_training}.
+When the model is trained, we present the model training performance, an illustration of the network and a ROC plot as in Figure \ref{fig_results}.
 ```{r,echo=T,eval=F}
-par(mfrow=c(1,3))
 # Performance
+par(mar=c(5,5,2,0))
 plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
      xlab="Epochs",main="Performance")
+
 # Model visualisation
+par(mar=c(0,0,0,0))
 SRCL_3_plot_neural_network(model,names(exposure_data),5)
+
 # AUC
 library(pROC)
+par(mar=c(5,5,2,0))
 pred <- SRCL_4_predict_risks(exposure_data,model)
-plot(roc(outcome_data,pred),print.auc=TRUE)
+plot(roc(outcome_data,pred),print.auc=TRUE,main="Accuracy")
 ```
 
 We then decompose the risks into risk contributions for each exposure and a baseline.
@@ -1097,61 +1102,100 @@ We then decompose the risks into risk contributions for each exposure and a base
 r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
 ```
 
-We then reduce dimentionality related to the rick contributions and suggest a number of relevant clusters.
+We show the dendrogram for 3 sub-groups as in Figure \ref{fig_results}.
 ```{r,echo=T,eval=F}
 # Clustering
-library(graphics)
+groups =3
 colours <- c("grey","dodgerblue","red","orange")
-summary(prcomp(r_c))
-plot(prcomp(r_c))
-plot(prcomp(r_c)$x[,1:2])
-# Depending on the number of influencial principal components
-# (In this example, the two first principal components are used)
-d_r_c <- as.data.frame(prcomp(r_c)$x[,1:2])
+
 library(fastcluster)
-p_d <- hclust(dist(d_r_c),"ward.D")
-groups = 4
-clus = cutree(p_d, groups)
-plot(prcomp(r_c)$x[,1:2],col=colours[clus])
+hc <- hclust(dist(r_c), method="ward.D") # RAM memory intensive
+clus <- cutree(hc, groups)
+p <- cbind(r_c,clus)
+p <- plyr::count(p)
+pfreq <- p$freq
+pclus <- p$clus
+p <- p[,-c(ncol(p)-1,ncol(p))]
+p <- hclust(dist(p),method = "ward.D", members=pfreq)
+par(mfrow=c(1,1))
+par(mar=c(5,5,5,5))
+library(ggtree)
+library(ggplot2)
+ggtree(p,layout="equal_angle") +
+  geom_tippoint(size=sqrt(pfreq)/2, alpha=.2, color=colours[pclus])+
+  ggtitle("Dendrogram") +
+  theme(plot.title = element_text(size = 15, face = "bold"))
 ```
 
-Here, 4 sub-groups was indicated to be relevant.
+We generate the plot with the prevalence and mean risks of the sub-groups as in Figure \ref{fig_results}.
 
-Below code, shows the PCA analysis, the combined and elaborated plots as in Figure \ref{fig_results}.
 ```{r,echo=T,eval=F}
-# Plot results
-library(robustbase)
-layout(matrix(c(1,2,3,3,4,4,5,5,6,6,7,7), 3, 4, byrow = TRUE))
-par(mar=c(4,5,3,0))
-plot(prcomp(r_c),main="PCA: Proportion of variance")
-plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=FALSE)
-par(mar=c(4,12,3,4))
+par(mar=c(4,5,2,1))
 plot(0,0,type='n',xlim=c(0,1),asp=1,ylim=c(0,1),xaxs='i',yaxs='i',
-     axes=FALSE,ylab="Risk",xlab="Exposed",frame.plot=FALSE,main="Combined plot")
+     axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,
+     main="Prevalence and mean risk of sub-groups")
 axis(1,seq(0,1,.2));axis(2,seq(0,1,.2))
 rect(0,0,1,1)
 prev0 = 0; total = 0
 for (i in 1:groups) {
   prev <- sum(clus==i)/length(clus)
-  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
+  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
   rect(xleft = prev0,ybottom = 0,xright = prev+prev0,ytop = risk, col=colours[i])
   prev0 = prev + prev0
   total = total + risk * prev
 }
-arrows(x0=0,x1=1,y0=median(r_c$Baseline_risk),lty=1,length=0)
-par(mar=c(3,10,5,3))
+arrows(x0=0,x1=1,y0=mean(r_c$Baseline_risk),lty=1,length=0)
+```
+
+And finally the table with the risk contributions as in Figure \ref{fig_results}.
+
+```{r,echo=T,eval=F}
+st <- 1.5
+d <- data.frame(matrix(NA, nrow=ncol(r_c)))
+for (g in 1:groups) {
+  for (i in 1:nrow(d)) {
+    d[i,g] <- mean(r_c[clus==g,i])
+  }}
+d <- t(d)
+rownames(d) <- paste("Group",1:groups)
+colnames(d) <- names(r_c)
+par(mar=c(0,0,0,0))
+plot(0,0,type='n',xlim=c(-ncol(d)-5,0),ylim=c(-nrow(d)-1,1),axes=F)
+text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
+text(-ncol(d)-5,0,"Mean (SD) risk contributions\nby sub-group",pos=4,cex=st)
 for (i in 1:groups) {
   prev <- sum(clus==i)/length(clus)
-  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
+  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
   risk_obs <- mean(outcome_data[clus==i])
-  boxplot(r_c[clus==i,],horizontal = TRUE,las=2, outline = FALSE ,
-          range = 0.000000001,col=colours[i])
-  title(paste0("Elaborated plot - sub-group ",i,"\n",sum(clus==i),
-               " (prev=",round(prev*100,1),"%, risk=",round(risk*100),
-               "%,\nexcess=",round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
-               "%, observed risk=",round(risk_obs*100),"%)"),col.main=colours[i])
+  text(-ncol(d)-5,-i,paste0("Sub-group ",i,"\n","n=",sum(clus==i),", e=",
+                    sum(outcome_data[clus==i])," (prev=",round(prev*100,1),
+                    "%, risk=",round(risk*100),"%,\nexcess=",
+                    round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),
+                    "%,obs risk=", paste0(round(prop.test(sum(outcome_data[clus==i]),
+                    length(t(outcome_data)[clus==i]))$conf.int*100,2),collapse="-"),
+                    "%)"),pos=4,col=colours[i])
 }
+m <- max(d)
+for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
+  value <- paste0(format(round(as.numeric(d[i,g]),2),nsmall=2),"\n(",
+                  format(round(sd(r_c[clus==i,g]),2),nsmall=2),")")
+  text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+}}
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \newpage
@@ -1183,9 +1227,7 @@ abline(v=P_Y_MA*P_MA/P_Y*100)
 ```
 
 
-These results indicate that we underestimate the true proportion of cases. Finite sample sizes and noise signals could be two factors, which would cause an underestimation of the true proportion of cases.
-
-**< [I need to rerun the simulations]**
+These results indicate that we underestimate the true proportion of cases. Finite sample sizes and noise signals could be two factors, which would cause an underestimation of the true proportion of cases. **< [I need to rerun the simulations]**
 
 \newpage
 
@@ -1233,11 +1275,15 @@ gen_data <- function(n) {
   data <- data.frame(V1 = sample(0:1,n,replace = T))
   for (i in 1:15) {data[,i] <- sample(0:1,n,replace = TRUE, prob = c(0.7,0.3))}
   C = as.numeric(sample(0:1,n,replace=TRUE,prob = c(0.5,0.5)))
-  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.7,0.3))==1) {data[i,2] <- 1}}
-  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {data[i,12] <- 1}}
+  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.7,0.3))==1) {
+    data[i,2] <- 1}}
+  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {
+    data[i,12] <- 1}}
   data$Y <-  sample(0:1,n,replace = T, prob = c(0.95,0.05))
-  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {data$Y[i] <- 1}}
-  for (i in 1:nrow(data)) {if (data[i,10]==1 & sample(0:1,1,prob = c(0.95,0.05))==1) {data$Y[i]<- 1}}
+  for (i in 1:nrow(data)) {if (C[i]==1 & sample(0:1,1,prob = c(0.8,0.2))==1) {
+    data$Y[i] <- 1}}
+  for (i in 1:nrow(data)) {if (data[i,10]==1 & sample(0:1,1,prob = c(0.95,0.05))==1) {
+    data$Y[i]<- 1}}
   for(i in 1:ncol(data)) {data[,i] <- as.numeric(data[,i])}
   data$C <- C
   data <- data[,c(16,1:15,17)]
@@ -1277,8 +1323,7 @@ SRCL_plot_neural_network(model,names(exposure_data),5)
 
 ```
 
-\newpage
- 
+
 <!--
 
 ```{r,echo=T,eval=F}
