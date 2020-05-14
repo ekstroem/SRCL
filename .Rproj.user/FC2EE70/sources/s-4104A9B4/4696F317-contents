@@ -286,7 +286,7 @@ SRCL_2_train_neural_network_with_confounder <- function(X, Y, C, model, lr = 0.0
 
 
 
-#' Plotting the monotonistic neural networks
+#' Plotting the monotonistic neural network
 #'
 #' This function plots the monotonistic neural network
 #'

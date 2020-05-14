@@ -239,7 +239,8 @@ SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
     for(rounds in 1:ceiling(c(epochs/plot_and_evaluation_frequency))) {
       model <- SRCL_cpp_train_network_relu(x=as.matrix(X),y=as.matrix(Y),testx=as.matrix(X),testy=as.matrix(Y),lr = lr, maxepochs  = plot_and_evaluation_frequency, W1_input = model[[1]],B1_input = model[[2]],W2_input = model[[3]],B2_input = model[[4]])
       performance <- c(performance,model$train_performance)
-      plot(performance, type='l',yaxs='i')
+      plot(performance, type='l',yaxs='i' ylab="Mean squared error",
+           xlab="Epochs",main="Performance")
       if(length(performance)-which.min(performance)>patience) break
     }
   model$train_performance <- c(performance)
@@ -276,7 +277,8 @@ SRCL_2_train_neural_network_with_confounder <- function(X, Y, C, model, lr = 0.0
     model <- SRCL_cpp_train_network_relu_with_confounder(as.matrix(X),as.matrix(Y),as.matrix(C),as.matrix(X),as.matrix(Y),as.matrix(C),
            lr = lr, maxepochs  = plot_and_evaluation_frequency, W1_input = model[[1]],B1_input = model[[2]],W2_input = model[[3]],B2_input = model[[4]],C2_input = model[[5]])
     performance <- c(performance,model$train_performance)
-    plot(performance, type='l',yaxs='i')
+    plot(performance, type='l',yaxs='i', ylab="Mean squared error",
+         xlab="Epochs",main="Performance")
     if(length(performance)-which.min(performance)>patience) break
   }
   model$train_performance <- c(performance)
@@ -286,7 +288,7 @@ SRCL_2_train_neural_network_with_confounder <- function(X, Y, C, model, lr = 0.0
 
 
 
-#' Plotting the monotonistic neural networks
+#' Plotting the monotonistic neural network
 #'
 #' This function plots the monotonistic neural network
 #'
@@ -298,8 +300,8 @@ SRCL_2_train_neural_network_with_confounder <- function(X, Y, C, model, lr = 0.0
 #' #See the example under SRCL_0_motivating_example
 
 SRCL_3_plot_neural_network <- function(model,names,arrow_size = 2) {
-  par(mar=c(0,0,0,0))
-  plot(0,0,type='n',xlim=c(0,4),ylim=c(-max(nrow(model[[1]]),nrow(model[[3]]))-1,0),axes=FALSE,ylab="",xlab="")
+  par(mar=c(0,0,2,0))
+  plot(0,0,type='n',xlim=c(0,4),ylim=c(-max(nrow(model[[1]]),nrow(model[[3]]))-1,0),axes=FALSE,ylab="",xlab="",main="Model")
   #abline(h=0)
   points(rep(1,nrow(model[[1]])),-c(1:nrow(model[[1]])),cex=10)
   points(rep(2,ncol(model[[1]])),-c(1:ncol(model[[1]])),cex=10)
@@ -317,7 +319,7 @@ SRCL_3_plot_neural_network <- function(model,names,arrow_size = 2) {
   for (i in 1:nrow(model[[1]])) {
     text(rep(1,nrow(model[[1]]))[i],-c(1:nrow(model[[1]]))[i],names[i])
   }
-  text(rep(2,ncol(model[[1]])),-c(1:ncol(model[[1]])),paste0("B=",round(model[[2]][1,],2)),pos=1)
+  text(rep(2,ncol(model[[1]])),-c(1:ncol(model[[1]])),paste0("b=",round(model[[2]][1,],2)),pos=1)
   text(3,-(ncol(model[[1]])+1)/2,paste0("B=",round(model[[4]][1,1],2)),pos=1)
   par(mar=c(5.1,4.1,4.1,2.1))
   #  points(3,-(ncol(model[[1]])+1)/2+1,cex=10)
