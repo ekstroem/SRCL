@@ -3,7 +3,7 @@
     "path": "C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/SRCL.Rmd",
     "project_path": null,
     "type": "r_markdown",
-    "hash": "1531277418",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1588339629106.0,
@@ -11,16 +11,16 @@
     "relative_order": 1,
     "properties": {
         "chunk_output_type": "console",
-        "cursorPosition": "803,1322",
+        "cursorPosition": "546,0",
         "docOutlineVisible": "1",
-        "scrollLine": "795"
+        "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1589470566,
+    "lastKnownWriteTime": 1589534847,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1589470566070,
+    "last_content_update": 1589534847172,
     "read_only": false,
     "read_only_alternatives": []
 }
