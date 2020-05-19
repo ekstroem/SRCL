@@ -12,9 +12,11 @@ Imports:
     RcppArmadillo,
     pROC,
     fastcluster,
-    robustbase,
     graphics,
-    stats
+    stats,
+    plyr,
+    ggplot2,
+    ggtree
 LinkingTo: 
   Rcpp, 
   RcppArmadillo

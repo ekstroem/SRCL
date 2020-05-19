@@ -9,7 +9,7 @@ colours <- c("grey","dodgerblue","red","orange","green")
 
 # Data simulation
 set.seed(1234567)
-data <- SRCL_0_motivating_example(40000) # use 40 000 to replicate the paper
+data <- SRCL_0_synthetic_data(100) # use 40 000 to replicate the paper
 
 # Code data monotonisticly
 lm(Y~.,data)
@@ -24,7 +24,7 @@ outcome_data <- data[,1]
 
 # Model fit
 model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
-for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
+for (lr_set in c(0.001,0.0001,0.00001)) {
   model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
                                        lr = lr_set, epochs=1000,patience = 100,plot_and_evaluation_frequency = 50)
 }
@@ -125,7 +125,7 @@ for (i in 1:groups) {
   text(-ncol(d)-5,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",sum(outcome_data[clus==i]),",\nPrev=",format(round(prev*100,1),nsmall=1),"%, risk=",format(round(risk*100,1),nsmall=1),"%, excess=",
                             #round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
                             format(round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),nsmall=1),
-                            ",\nObs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
+                            "%,\nObs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
                             #                     "round(risk_obs*100),
                             paste0(format(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,1),nsmall=1),collapse="-"),
                             "%)"),pos=4,col=colours[i])
@@ -272,7 +272,7 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
 
   # Data simulation
   set.seed(run)
-  data <- SRCL_0_motivating_example(40000) # use 40 000 to replicate the paper
+  data <- SRCL_0_synthetic_data(40000) # use 40 000 to replicate the paper
 
   # Code data monotonisticly
   lm(Y~.,data)
@@ -287,7 +287,7 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
 
   # Model fit
   model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
-  for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
+  for (lr_set in c(0.001,0.0001,0.00001)) {
     model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
                                          lr = lr_set, epochs=1000,patience = 100,plot_and_evaluation_frequency = 50)
   }
@@ -386,12 +386,12 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
     #  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
     risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
     risk_obs <- mean(outcome_data[clus==i])
-    text(-ncol(d)-5,-i,paste0("Sub-group ",i,"\n","n=",sum(clus==i),", e=",sum(outcome_data[clus==i])," (prev=",round(prev*100,1),"%, risk=",round(risk*100),"%,\nexcess=",
+    text(-ncol(d)-5,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",sum(outcome_data[clus==i]),",\nPrev=",format(round(prev*100,1),nsmall=1),"%, risk=",format(round(risk*100,1),nsmall=1),"%, excess=",
                               #round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
-                              round(prev*(risk-mean(r_c$Baseline_risk))/total*100,3),
-                              "%,obs risk=",
+                              format(round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),nsmall=1),
+                              "%,\nObs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
                               #                     "round(risk_obs*100),
-                              paste0(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,2),collapse="-"),
+                              paste0(format(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,1),nsmall=1),collapse="-"),
                               "%)"),pos=4,col=colours[i])
     ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
   }

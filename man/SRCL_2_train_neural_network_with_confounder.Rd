@@ -33,8 +33,8 @@ SRCL_2_train_neural_network_with_confounder(
 \item{plot_and_evaluation_frequency}{The interval for plotting the performance and checking the patience}
 }
 \description{
-This function trains the monotonistic neural network with a confounder connected to the output layer. This functions allows one to devide the training process into several steps.
+This function trains the monotonistic neural network with a confounder connected to the output layer. This functions allows one to divide the training process into several steps.
 }
 \examples{
-#See the example under SRCL_0_motivating_example
+#See the example under SRCL_0_synthetic_data
 }

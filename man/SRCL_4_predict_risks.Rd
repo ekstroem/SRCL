@@ -12,8 +12,8 @@ SRCL_4_predict_risks(X, model)
 \item{model}{The fitted the monotonistic neural network}
 }
 \description{
-Predict the risk of the outcome using the fitted monotonistic neural network
+Predict the risk of the outcome using the fitted monotonistic neural network.
 }
 \examples{
-#See the example under SRCL_0_motivating_example
+#See the example under SRCL_0_synthetic_data
 }

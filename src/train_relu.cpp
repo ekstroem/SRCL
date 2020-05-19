@@ -129,7 +129,6 @@ Rcpp::List SRCL_cpp_train_network_relu(
       //arma::mat outH_netH = h>0; 
       arma::mat netO_outH = trans(W2);
     // Possibly move this to after the trans line below
- //     W2 = rcpprelu(W2 - lr*E_outO * (trans(netO_outH) % netO_wHO));
      W2 = rcpprelu(W2 - lr*E_outO * netO_wHO);
 
       // All calculations done. Now do the updating
@@ -288,24 +287,23 @@ Rcpp::List SRCL_cpp_train_network_relu_with_confounder(
 
       // Okay ... Forward done ... Now we need to back propagate
       double E_outO = - (y(row) - o(row));
-      double outO_netO = (o(row)>0); 
       arma::mat netO_wHO = trans(h);
       //arma::mat outH_netH = h>0; 
       arma::mat netO_outH = trans(W2);
     // Possibly move this to after the trans line below
-      W2 = rcpprelu(W2 - lr*E_outO*outO_netO* (trans(netO_outH) % netO_wHO));
+      W2 = rcpprelu(W2 - lr*E_outO * netO_wHO);
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {
-        W1.row(g) = rcpprelu(W1.row(g) - 10* lr * E_outO * outO_netO * (netO_outH % (h>0)) * x(row, g));
+        W1.row(g) = rcpprelu(W1.row(g) - 10* lr * E_outO *  (netO_outH % (h>0)) * x(row, g));
 }
 
-      B1 = rcpprelu_neg(B1 - lr * E_outO * outO_netO * (netO_outH % (h>0)));
-      B2 = rcpprelu(B2 -lr * 0.1 * E_outO * outO_netO);
+      B1 = rcpprelu_neg(B1 - lr * E_outO *  (netO_outH % (h>0)));
+      B2 = rcpprelu(B2 -lr * 0.1 * E_outO );
 
       // Update confounder weight
       netO_wHO = trans(c.row(row));
-      C2 -= lr * E_outO * outO_netO * netO_wHO;
+      C2 -= lr * E_outO * netO_wHO;
 
     } // Row
 

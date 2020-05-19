@@ -17,5 +17,5 @@ SRCL_3_plot_neural_network(model, names, arrow_size = 2)
 This function plots the monotonistic neural network
 }
 \examples{
-#See the example under SRCL_0_motivating_example
+#See the example under SRCL_0_synthetic_data
 }

@@ -15,5 +15,5 @@ SRCL_5_layerwise_relevance_propagation(X, model)
 Calculates risk contributions for each exposure and a baseline using layer-wise relevance propagation of the fitted monotonistic neural network and data.
 }
 \examples{
-#See the example under SRCL_0_motivating_example
+#See the example under SRCL_0_synthetic_data
 }

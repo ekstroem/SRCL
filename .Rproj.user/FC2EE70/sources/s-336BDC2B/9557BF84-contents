@@ -34,106 +34,132 @@ relu <- function(input) {
 
 ########## Wrappers ##############
 
-#' SRCL motivating example
+#' SRCL synthetic data
 #'
 #' To reproduce the synthetic data from the paper Synergistic Cause Learning.
 #'
 #' @param n number of observations for the synthetic data
 #' @export
 #' @examples
-#' library(SRCL)
-#' library(graphics)
-#' colours <- c("grey","dodgerblue","red","orange","green")
 #'
-#' # Data simulation
-#' set.seed(12345678)
-#' data <- SRCL_0_motivating_example(100) # use 40 000 to replicate the paper
+#' 	library(SRCL)
+#' 	library(graphics)
+#' 	colours <- c("grey","dodgerblue","red","orange","green")
 #'
-#' # Code data monotonisticly
-#' lm(Y~.,data)
-#' recode <- lm(Y~.,data)$coefficients<0
-#' for (i in 2:ncol(data)) {
-#'   if(recode[i]==TRUE) colnames(data)[i] <- paste0("Not_",colnames(data)[i])
-#'   if(recode[i]==TRUE) data[,i] = 1 - data[,i]
-#' }
-#' summary(lm(Y~.,data))
-#' exposure_data <- data[,-1]
-#' outcome_data <- data[,1]
+#' 	# Data simulation
+#' 	set.seed(1234567)
+#' 	data <- SRCL_0_synthetic_data(100) # use 40 000 to replicate the paper
 #'
-#' # Model fit
-#' model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
-#' for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
-#'   model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
-#'            lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
-#' }
+#' 	# Code data monotonisticly
+#' 	lm(Y~.,data)
+#' 	recode <- lm(Y~.,data)$coefficients<0
+#' 	for (i in 2:ncol(data)) {
+#' 	  if(recode[i]==TRUE) colnames(data)[i] <- paste0("Not_",colnames(data)[i])
+#' 	  if(recode[i]==TRUE) data[,i] = 1 - data[,i]
+#' 	}
+#' 	summary(lm(Y~.,data))
+#' 	exposure_data <- data[,-1]
+#' 	outcome_data <- data[,1]
 #'
+#' 	# Model fit
+#' 	model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
+#' 	for (lr_set in c(0.001,0.0001,0.00001)) {
+#' 	  model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
+#' 	   lr = lr_set, epochs=1000,patience = 100,plot_and_evaluation_frequency = 50)
+#' 	}
 #'
-#' par(mfrow=c(1,3))
+#' 	# Performance
+#' 	par(mar=c(5,5,2,0))
+#' 	plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
+#' 	     xlab="Epochs",main="Performance")
 #'
-#' # Performance
-#' plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
-#'            xlab="Epochs",main="Performance")
+#' 	# Model visualisation
+#' 	par(mar=c(0,0,0,0))
+#' 	SRCL_3_plot_neural_network(model,names(exposure_data),5)
 #'
-#' # Model visualisation
-#' SRCL_3_plot_neural_network(model,names(exposure_data),5)
+#' 	# AUC
+#' 	library(pROC)
+#' 	par(mar=c(5,5,2,0))
+#' 	pred <- SRCL_4_predict_risks(exposure_data,model)
+#' 	plot(roc(outcome_data,pred),print.auc=TRUE,main="Accuracy")
 #'
-#' # AUC
-#' library(pROC)
-#' pred <- SRCL_4_predict_risks(exposure_data,model)
-#' plot(roc(outcome_data,pred),print.auc=TRUE)
+#' 	# Risk contributions
+#' 	r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
 #'
-#' # Risk contributions
-#' r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
+#' 	# Clustering
+#' 	groups =3
+#' 	library(fastcluster)
+#' 	hc <- hclust(dist(r_c), method="ward.D") # RAM memory intensive
+#' 	clus <- cutree(hc, groups)
+#' 	p <- cbind(r_c,clus)
+#' 	library(plyr)
+#' 	p <- count(p)
+#' 	pfreq <- p$freq
+#' 	pclus <- p$clus
+#' 	p <- p[,-c(ncol(p)-1,ncol(p))]
+#' 	p <- hclust(dist(p),method = "ward.D", members=pfreq)
+#' 	par(mfrow=c(1,1))
+#' 	par(mar=c(5,5,5,5))
+#' 	library(ggtree)
+#' 	library(ggplot2)
+#' 	ggtree(p,layout="equal_angle") +
+#' 	  geom_tippoint(size=sqrt(pfreq)/2, alpha=.2, color=colours[pclus])+
+#' 	  ggtitle("Dendrogram") +
+#' 	  theme(plot.title = element_text(size = 15, face = "bold"))
 #'
+#' 	# Plot with the prevalence and mean risks
+#' 	par(mar=c(4,5,2,1))
+#' 	plot(0,0,type='n',xlim=c(0,1),asp=1,ylim=c(0,1),xaxs='i',yaxs='i',
+#' 	     axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,
+#' 	     main="Prevalence and mean risk of sub-groups")
+#' 	axis(1,seq(0,1,.2));axis(2,seq(0,1,.2))
+#' 	rect(0,0,1,1)
+#' 	prev0 = 0; total = 0
+#' 	for (i in 1:groups) {
+#' 	  prev <- sum(clus==i)/length(clus)
+#' 	  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+#' 	  rect(xleft = prev0,ybottom = 0,xright = prev+prev0,ytop = risk, col=colours[i])
+#' 	  prev0 = prev + prev0
+#' 	  total = total + risk * prev
+#' 	}
+#' 	arrows(x0=0,x1=1,y0=mean(r_c$Baseline_risk),lty=1,length=0)
 #'
-#' # Clustering
-#' summary(prcomp(r_c))
-#' plot(prcomp(r_c))
-#' plot(prcomp(r_c)$x[,1:2])
-#' # Depending on the number of influencial principal components
-#' # (In this example, the two first principal components are used)
-#' d_r_c <- as.data.frame(prcomp(r_c)$x[,1:2])
-#' library(fastcluster)
-#' p_d <- hclust(dist(d_r_c),"ward.D")
-#' groups = 4
-#' clus = cutree(p_d, groups)
-#' plot(prcomp(r_c)$x[,1:2],col=colours[clus])
-#'
-#' # Plot results
-#' library(robustbase)
-#' layout(matrix(c(1,2,3,3,4,4,5,5,6,6,7,7), 3, 4, byrow = TRUE))
-#' par(mar=c(4,5,3,0))
-#' plot(prcomp(r_c),main="PCA: Proportion of variance")
-#' plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=FALSE)
-#' par(mar=c(4,12,3,4))
-#' plot(0,0,type='n',xlim=c(0,1),asp=1,ylim=c(0,1),xaxs='i',yaxs='i',
-#' axes=FALSE,ylab="Risk",xlab="Exposed",frame.plot=FALSE,main="Combined plot")
-#' axis(1,seq(0,1,.2));axis(2,seq(0,1,.2))
-#' rect(0,0,1,1)
-#' prev0 = 0; total = 0
-#' for (i in 1:groups) {
-#'   prev <- sum(clus==i)/length(clus)
-#'   risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
-#'   rect(xleft = prev0,ybottom = 0,xright = prev+prev0,ytop = risk, col=colours[i])
-#'   prev0 = prev + prev0
-#' total = total + risk * prev
-#' }
-#' arrows(x0=0,x1=1,y0=median(r_c$Baseline_risk),lty=1,length=0)
-#' par(mar=c(3,10,5,3))
-#' for (i in 1:groups) {
-#'   prev <- sum(clus==i)/length(clus)
-#'   risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
-#'   risk_obs <- mean(outcome_data[clus==i])
-#'   boxplot(r_c[clus==i,],horizontal = TRUE,las=2, outline = FALSE ,
-#'                             range = 0.000000001,col=colours[i])
-#'   title(paste0("Elaborated plot - sub-group ",i,"\n",sum(clus==i),
-#'             " (prev=",round(prev*100,1),"%, risk=",round(risk*100),
-#'             "%,\nexcess=",round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
-#'             "%, observed risk=",round(risk_obs*100),"%)"),col.main=colours[i])
-#' }
+#' 	# The table with risk contributions
+#' 	st <- 1.5
+#' 	d <- data.frame(matrix(NA, nrow=ncol(r_c)))
+#' 	for (g in 1:groups) {
+#' 	  for (i in 1:nrow(d)) {
+#' 	    d[i,g] <- mean(r_c[clus==g,i])
+#' 	  }}
+#' 	d <- t(d)
+#' 	rownames(d) <- paste("Group",1:groups)
+#' 	colnames(d) <- names(r_c)
+#' 	par(mar=c(0,0,0,0))
+#' 	plot(0,0,type='n',xlim=c(-ncol(d)-5,0),ylim=c(-nrow(d)-1,1),axes=FALSE)
+#' 	text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
+#' 	text(-ncol(d)-5,0,"Mean (SD) risk contributions\nby sub-group",pos=4,cex=st)
+#' 	for (i in 1:groups) {
+#' 	  prev <- sum(clus==i)/length(clus)
+#' 	  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+#' 	  risk_obs <- mean(outcome_data[clus==i])
+#' 	  text(-ncol(d)-5,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",
+#' 	    sum(outcome_data[clus==i]),",\nPrev=",format(round(prev*100,1),nsmall=1),"%,
+#' 	    risk=",format(round(risk*100,1),nsmall=1),"%, excess=",
+#' 	    format(round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),nsmall=1),
+#' 	    "%,\nObs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
+#' 	    paste0(format(round(prop.test(sum(outcome_data[clus==i]),
+#' 	    length(t(outcome_data)[clus==i]))$conf.int*100,1),nsmall=1),collapse="-"),
+#' 	    "%)"),pos=4,col=colours[i])
+#' 	}
+#' 	m <- max(d)
+#' 	for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
+#' 	  value <- paste0(format(round(as.numeric(d[i,g]),2),nsmall=2),"\n(",
+#' 	                  format(round(sd(r_c[clus==i,g]),2),nsmall=2),")")
+#' 	  text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+#' 	}}
 
 
-SRCL_0_motivating_example <- function(n) {
+SRCL_0_synthetic_data <- function(n) {
   #n = 20000
   Genes = sample(1:0,n,prob=c(0.05,0.95),replace=TRUE)
   Living_area = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
@@ -189,8 +215,15 @@ SRCL_0_motivating_example <- function(n) {
 #' @param hidden Number of hidden nodes.
 #' @param confounder Allows to control away a confounder (connected to the output layer)
 #' @export
+#' @details
+#'
+#' The monotonistic neural network can be denoted as:
+#' \deqn{
+#' P(Y=1|X^+)=\sum_{j}\Big(w_{j,k}^+ReLU_j\big(\sum_{i}(w_{i,j}^+X_i^+) + b_j^-\big)\Big) + R^{b}
+#' }
+#'
 #' @examples
-#' #See the example under SRCL_0_motivating_example
+#' #See the example under SRCL_0_synthetic_data
 #'
 
 
@@ -217,7 +250,7 @@ SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
 
 #' Training the monotonistic neural network
 #'
-#' This function trains the monotonistic neural network. Fitting the model is done in a step-wise procedure one individual at a time, where the model estimates individual's risk of the disease outcome, estimates the prediction's residual error and adjusts the model parameters to reduce this error. By iterating through all individuals for multiple epochs (one complete iterations through all individuals is called an epoch), we end with parameters for the model, where the errors are smallest possible for the full population. The model fit follows the linear expectation that synergism is a combined effect larger than the sum of independent effects. The initial values, derivatives, and learning rates are described in further detail in the Supplementary material. The monotonistic model ensures that the predicted value cannot be negative. The model does not prevent estimating probabilities above 1, but this would be unlikely, as risks of disease and mortality even for high risk groups in genereal are far below 1. The use of a test dataset does not seem to assist deciding on the optimal number of epochs possibly due to the constrains due to the monotonicity assumption. We suggest splitting data into a train and test data set, such that findings from the train data set can be confirmed in the test data set before developing hypotheses.
+#' This function trains the monotonistic neural network. Fitting the model is done in a step-wise procedure one individual at a time, where the model estimates individual's risk of the disease outcome, estimates the prediction's residual error and adjusts the model parameters to reduce this error. By iterating through all individuals for multiple epochs (one complete iterations through all individuals is called an epoch), we end with parameters for the model, where the errors are smallest possible for the full population. The model fit follows the linear expectation that synergism is a combined effect larger than the sum of independent effects. The initial values, derivatives, and learning rates are described in further detail in the Supplementary material. The monotonistic model ensures that the predicted value cannot be negative. The model does not prevent estimating probabilities above 1, but this would be unlikely, as risks of disease and mortality even for high risk groups in general are far below 1. The use of a test dataset does not seem to assist deciding on the optimal number of epochs possibly due to the constrains due to the monotonicity assumption. We suggest splitting data into a train and test data set, such that findings from the train data set can be confirmed in the test data set before developing hypotheses.
 #'
 #' @param X The exposure data
 #' @param Y The outcome data
@@ -226,9 +259,31 @@ SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
 #' @param epochs Epochs
 #' @param patience The number of epochs allowed without an improvement in performance.
 #' @param plot_and_evaluation_frequency The interval for plotting the performance and checking the patience
+#' @details
+#' For each individual:\deqn{
+#' P(Y=1|X^+)=R^b+\sum_iR^X_i
+#' }
+#' The below procedure is conducted for all individuals in a one by one fashion. The baseline risk, $R^b$, is simply parameterised in the model. The decomposition of the risk contributions for exposures, $R^X_i$, takes 3 steps:
+#'
+#' Step 1 - Subtract the baseline risk, $R^b$:
+#' \deqn{
+#' R^X_k =  P(Y=1|X^+)-R^b
+#' }
+#' Step 2 - Decompose to the hidden layer:
+#' \deqn{
+#' R^{X}_j =  \frac{H_j w_{j,k}}{\sum_j(H_j w_{j,k})} R^X_k
+#' }
+#' Where $H_j$ is the value taken by each of the $ReLU()_j$ functions for the specific individual.
+#'
+#' Step 3 - Hidden layer to exposures:
+#' \deqn{
+#' R^{X}_i = \sum_j \Big(\frac{X_i^+ w_{i,j}}{\sum_i( X_i^+ w_{i,j})}R^X_j\Big)
+#' }
+#' This creates a dataset with the dimensions equal to the number of individuals times the number of exposures plus a baseline risk value, which can be termed a risk contribution matrix. Instead of exposure values, individuals are given risk contributions, R^X_i.
+#'
 #' @export
 #' @examples
-#' #See the example under SRCL_0_motivating_example
+#' #See the example under SRCL_0_synthetic_data
 
 
 SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
@@ -254,7 +309,7 @@ SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
 
 #' Training the monotonistic neural network with a confounder connected to the output layer
 #'
-#' This function trains the monotonistic neural network with a confounder connected to the output layer. This functions allows one to devide the training process into several steps.
+#' This function trains the monotonistic neural network with a confounder connected to the output layer. This functions allows one to divide the training process into several steps.
 #'
 #' @param X The exposure data
 #' @param Y The outcome data
@@ -264,9 +319,10 @@ SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
 #' @param epochs Epochs
 #' @param patience The number of epochs allowed without an improvement in performance.
 #' @param plot_and_evaluation_frequency The interval for plotting the performance and checking the patience
+#' @details
 #' @export
 #' @examples
-#' #See the example under SRCL_0_motivating_example
+#' #See the example under SRCL_0_synthetic_data
 
 SRCL_2_train_neural_network_with_confounder <- function(X, Y, C, model, lr = 0.01,
                                       epochs = 50000, patience = 500,
@@ -298,7 +354,7 @@ SRCL_2_train_neural_network_with_confounder <- function(X, Y, C, model, lr = 0.0
 #' @param arrow_size defines the arrow_size for the model illustration in the reported training progress.
 #' @export
 #' @examples
-#' #See the example under SRCL_0_motivating_example
+#' #See the example under SRCL_0_synthetic_data
 
 SRCL_3_plot_neural_network <- function(model,names,arrow_size = 2) {
   par(mar=c(0,0,2,0))
@@ -330,18 +386,19 @@ SRCL_3_plot_neural_network <- function(model,names,arrow_size = 2) {
 
 #' Predict the risk of the outcome using the fitted monotonistic neural network
 #'
-#' Predict the risk of the outcome using the fitted monotonistic neural network
+#' Predict the risk of the outcome using the fitted monotonistic neural network.
 #'
 #' @param X The exposure data
 #' @param model The fitted the monotonistic neural network
 #' @export
 #' @examples
-#' #See the example under SRCL_0_motivating_example
+#' #See the example under SRCL_0_synthetic_data
 
 
 SRCL_4_predict_risks <- function(X,model) {
   H <- relu(t(t(as.matrix(X) %*% as.matrix(model[[1]])) + as.vector(model[[2]])))
   o = relu(as.vector(H %*% model[[3]][,1] + as.vector(model[[4]][1,1])))
+  if(max(o)>1) print("Warning: Some predicted risks are above 1")
   return(o)
 }
 
@@ -355,7 +412,7 @@ SRCL_4_predict_risks <- function(X,model) {
 #' @param model The fitted the monotonistic neural network
 #' @export
 #' @examples
-#' #See the example under SRCL_0_motivating_example
+#' #See the example under SRCL_0_synthetic_data
 
 
 SRCL_5_layerwise_relevance_propagation <- function(X,model) {
@@ -409,5 +466,8 @@ SRCL_5_layerwise_relevance_propagation <- function(X,model) {
   Baseline_risk <- U_B
   R_X <- data.frame(cbind(R_X,Baseline_risk))
   colnames(R_X) <- c(labels,"Baseline_risk")
+
+  #Sanity check
+  if (max(o_all-rowSums(R_X)) > 1e-6) print("WARNING: Some risk contributions do not sum to the predicted value")
   return(R_X)
 }
