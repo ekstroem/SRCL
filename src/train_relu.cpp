@@ -72,7 +72,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
   int nfeatures = x.n_cols;
   int hidden = W1_input.n_cols;
 
-  Rprintf("%s \n", "SRCL");
+  Rprintf("%s \n", "SRCL 3");
 
   // Loaded initialized weights.
   arma::mat W1(nfeatures, hidden, arma::fill::zeros);  // Filled with standard normals
@@ -129,15 +129,15 @@ Rcpp::List SRCL_cpp_train_network_relu(
       //arma::mat outH_netH = h>0; 
       arma::mat netO_outH = trans(W2);
     // Possibly move this to after the trans line below
-     W2 = rcpprelu(W2 - lr*E_outO * netO_wHO);
+    // W2 = rcpprelu(W2 - lr*E_outO * netO_wHO);
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {
-        W1.row(g) = rcpprelu(W1.row(g) - 10* lr * E_outO * (netO_outH % (h>0)) * x(row, g));
+        W1.row(g) = rcpprelu(W1.row(g) -  lr * E_outO * (netO_outH % (h>0)) * x(row, g)); // LR * 10 before
 }
 
       B1 = rcpprelu_neg(B1 - lr * E_outO * (netO_outH % (h>0)));
-      B2 = rcpprelu(B2 -lr * 0.1 * E_outO);
+      B2 = rcpprelu(B2 -lr / 10 *  E_outO);
 
 
     } // Row
@@ -291,7 +291,7 @@ Rcpp::List SRCL_cpp_train_network_relu_with_confounder(
       //arma::mat outH_netH = h>0; 
       arma::mat netO_outH = trans(W2);
     // Possibly move this to after the trans line below
-      W2 = rcpprelu(W2 - lr*E_outO * netO_wHO);
+    //  W2 = rcpprelu(W2 - lr*E_outO * netO_wHO);
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {

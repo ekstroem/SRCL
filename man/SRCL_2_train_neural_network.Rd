@@ -36,7 +36,7 @@ This function trains the monotonistic neural network. Fitting the model is done 
 For each individual:\deqn{
 P(Y=1|X^+)=R^b+\sum_iR^X_i
 }
-The below procedure is conducted for all individuals in a one by one fashion. The baseline risk, $R^b$, is simply parameterised in the model as illustrated in Figure \ref{fig_models}B. The decomposition of the risk contributions for exposures, $R^X_i$, takes 3 steps:
+The below procedure is conducted for all individuals in a one by one fashion. The baseline risk, $R^b$, is simply parameterised in the model. The decomposition of the risk contributions for exposures, $R^X_i$, takes 3 steps:
 
 Step 1 - Subtract the baseline risk, $R^b$:
 \deqn{

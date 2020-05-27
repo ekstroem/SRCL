@@ -165,9 +165,9 @@ SRCL_0_synthetic_data <- function(n) {
   Living_area = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
 
   Low_SES = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
-  Non_smoking = sample(1:0,n,prob=c(0.8,0.2),replace=TRUE)
+  Physically_active = sample(1:0,n,prob=c(0.8,0.2),replace=TRUE)
   for (i in 1:n) {
-    if (Low_SES[i] == 1 & sample(1:0,1,prob=c(.2,.8)) ) Non_smoking[i] <- 0
+    if (Low_SES[i] == 1 & sample(1:0,1,prob=c(.2,.8)) ) Physically_active[i] <- 0
   }
 
   Mutation_X = rep(0,n)
@@ -190,7 +190,7 @@ SRCL_0_synthetic_data <- function(n) {
 
   Y <-  sample(1:0,n,prob=c(0.05,0.95),replace = TRUE)
   for (i in 1:n) {
-    if (Non_smoking[i] == 0 & LDL[i] == 1 & Night_shifts[i] == 1 & sample(1:0,1,prob=c(.15,0.85)) ) {
+    if (Physically_active[i] == 0 & LDL[i] == 1 & Night_shifts[i] == 1 & sample(1:0,1,prob=c(.15,0.85)) ) {
       Y[i] <- 1
     }
     if (Mutation_X[i] == 1 & Air_pollution[i] == 1 & sample(1:0,1,prob=c(.1,0.9)) ) {
@@ -200,7 +200,7 @@ SRCL_0_synthetic_data <- function(n) {
 
   #  C = rep(0,n)
 
-  data <- data.frame(Y,Non_smoking,Low_SES,Mutation_X,LDL,Night_shifts,Air_pollution) #,C)
+  data <- data.frame(Y,Physically_active,Low_SES,Mutation_X,LDL,Night_shifts,Air_pollution) #,C)
   for (i in 1:ncol(data))   data[,i] <- as.numeric(data[,i])
   return(data)
 }
@@ -230,8 +230,9 @@ SRCL_0_synthetic_data <- function(n) {
 SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
   # Weight initiation
   w1 <- abs(random(inputs,hidden,0.01))
-  b1 <- -abs(random(1,hidden,0.00001))
-  w2 <- abs(random(hidden,1,0.01))
+  b1 <- -abs(random(1,hidden,0.01))
+#  w2 <- abs(random(hidden,1,0.01))
+  w2 <- matrix(1,nrow=hidden)
   b2 <- abs(random(1,1,0.01))
   if (confounder==TRUE)  c2 <- abs(random(1,1,0.01))
   performance <- NA
@@ -363,15 +364,17 @@ SRCL_3_plot_neural_network <- function(model,names,arrow_size = 2) {
   points(rep(1,nrow(model[[1]])),-c(1:nrow(model[[1]])),cex=10)
   points(rep(2,ncol(model[[1]])),-c(1:ncol(model[[1]])),cex=10)
   points(3,-(ncol(model[[1]])+1)/2,cex=10)
+  # Static edges first in grey
+  for (g in 1:nrow(model[[3]])) {
+    arrows(x0=2,x1=3,y0=-g,y1= -(ncol(model[[1]])+1)/2,lwd=abs(model[[3]][g,1])*5,col=ifelse(model[[3]][g,1]>0,"grey","white"),length=0)
+    #   text(2,-g,round(model[[3]][g,1],2),pos=3)
+  }
+  # Trained edges
   for (g in 1:nrow(model[[1]])) {
     for (h in 1:ncol(model[[1]])) {
       arrows(x0=1,x1=2,y0=-g,y1=-h,lwd=abs(model[[1]][g,h])*arrow_size,col=ifelse(model[[1]][g,h]>0,"green","white"),length=0)
       #      text(1,-g,round(model[[1]][g,h],2),pos=3)
     }
-  }
-  for (g in 1:nrow(model[[3]])) {
-    arrows(x0=2,x1=3,y0=-g,y1= -(ncol(model[[1]])+1)/2,lwd=abs(model[[3]][g,1])*arrow_size,col=ifelse(model[[3]][g,1]>0,"green","white"),length=0)
-    #   text(2,-g,round(model[[3]][g,1],2),pos=3)
   }
   for (i in 1:nrow(model[[1]])) {
     text(rep(1,nrow(model[[1]]))[i],-c(1:nrow(model[[1]]))[i],names[i])
