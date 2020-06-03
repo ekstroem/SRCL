@@ -260,6 +260,7 @@ SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
 #' @param epochs Epochs
 #' @param patience The number of epochs allowed without an improvement in performance.
 #' @param plot_and_evaluation_frequency The interval for plotting the performance and checking the patience
+#' @param IPCW Inverse probability of censoring weights (Warning: not yet correctly implemented)
 #' @details
 #' For each individual:\deqn{
 #' P(Y=1|X^+)=R^b+\sum_iR^X_i
@@ -289,12 +290,15 @@ SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
 
 SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
                             epochs = 50000, patience = 500,
-                            plot_and_evaluation_frequency = 50) {
+                            plot_and_evaluation_frequency = 50, IPCW = NA) {
 
+  if (is.na(IPCW)) IPCW <- rep(1,nrow(X))
   performance = model$train_performance
   par(mfrow=c(1,1));par(mar=c(3,5,3,1))
     for(rounds in 1:ceiling(c(epochs/plot_and_evaluation_frequency))) {
-      model <- SRCL_cpp_train_network_relu(x=as.matrix(X),y=as.matrix(Y),testx=as.matrix(X),testy=as.matrix(Y),lr = lr, maxepochs  = plot_and_evaluation_frequency, W1_input = model[[1]],B1_input = model[[2]],W2_input = model[[3]],B2_input = model[[4]])
+      model <- SRCL_cpp_train_network_relu(x=as.matrix(X),y=as.matrix(Y),testx=as.matrix(X),testy=as.matrix(Y),
+              lr = lr, maxepochs  = plot_and_evaluation_frequency, W1_input = model[[1]],B1_input = model[[2]],
+              W2_input = model[[3]],B2_input = model[[4]], IPCW = IPCW)
       performance <- c(performance,model$train_performance)
       plot(performance, type='l',yaxs='i', ylab="Mean squared error",
            xlab="Epochs",main="Performance")

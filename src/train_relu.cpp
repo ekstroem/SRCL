@@ -50,6 +50,7 @@ arma::mat rcpprelu_neg(const arma::mat & x) {
 //' @param B2_input Bias for the output layer (the baseline risk)
 //' @param lr Initial learning rate
 //' @param maxepochs The maximum number of epochs
+//' @param IPCW Inverse probability of censoring weights (Warning: not yet correctly implemented)
 //' @return A list of class "SCL" giving the estimated matrices and performance indicators
 //' @author    Andreas Rieckmann, Piotr Dworzynski, Claus Ekstrøm
 //'
@@ -64,6 +65,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
      const arma::mat & B1_input,
      const arma::mat & W2_input,
      const arma::mat & B2_input,
+     const arma::vec & IPCW,
 		 double lr=0.01,
 		 double maxepochs = 100
 		 ) {
@@ -72,7 +74,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
   int nfeatures = x.n_cols;
   int hidden = W1_input.n_cols;
 
-  Rprintf("%s \n", "SRCL 3");
+  Rprintf("%s \n", "SRCL");
 
   // Loaded initialized weights.
   arma::mat W1(nfeatures, hidden, arma::fill::zeros);  // Filled with standard normals
@@ -133,11 +135,11 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {
-        W1.row(g) = rcpprelu(W1.row(g) -  lr * E_outO * (netO_outH % (h>0)) * x(row, g)); // LR * 10 before
+        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g)); // LR * 10 before
 }
 
-      B1 = rcpprelu_neg(B1 - lr * E_outO * (netO_outH % (h>0)));
-      B2 = rcpprelu(B2 -lr / 10 *  E_outO);
+      B1 = rcpprelu_neg(B1 - IPCW(row) * lr * E_outO * (netO_outH % (h>0)));
+      B2 = rcpprelu(B2 - IPCW(row) * lr / 10 *  E_outO);
 
 
     } // Row

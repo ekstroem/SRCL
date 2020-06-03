@@ -13,6 +13,7 @@ SRCL_cpp_train_network_relu(
   B1_input,
   W2_input,
   B2_input,
+  IPCW,
   lr = 0.01,
   maxepochs = 100
 )
@@ -33,6 +34,8 @@ SRCL_cpp_train_network_relu(
 \item{W2_input}{Hidden-output layer weights}
 
 \item{B2_input}{Bias for the output layer (the baseline risk)}
+
+\item{IPCW}{Inverse probability of censoring weights (Warning: not yet correctly implemented)}
 
 \item{lr}{Initial learning rate}
 

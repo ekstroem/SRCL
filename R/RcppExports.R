@@ -37,12 +37,13 @@ rcpprelu_neg <- function(x) {
 #' @param B2_input Bias for the output layer (the baseline risk)
 #' @param lr Initial learning rate
 #' @param maxepochs The maximum number of epochs
+#' @param IPCW Inverse probability of censoring weights (Warning: not yet correctly implemented)
 #' @return A list of class "SCL" giving the estimated matrices and performance indicators
 #' @author    Andreas Rieckmann, Piotr Dworzynski, Claus Ekstrøm
 #'
 #' @export
-SRCL_cpp_train_network_relu <- function(x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, lr = 0.01, maxepochs = 100) {
-    .Call(`_SRCL_SRCL_cpp_train_network_relu`, x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, lr, maxepochs)
+SRCL_cpp_train_network_relu <- function(x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr = 0.01, maxepochs = 100) {
+    .Call(`_SRCL_SRCL_cpp_train_network_relu`, x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr, maxepochs)
 }
 
 #' Function used as part of other functions

@@ -11,7 +11,8 @@ SRCL_2_train_neural_network(
   lr = 0.01,
   epochs = 50000,
   patience = 500,
-  plot_and_evaluation_frequency = 50
+  plot_and_evaluation_frequency = 50,
+  IPCW = NA
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ SRCL_2_train_neural_network(
 \item{patience}{The number of epochs allowed without an improvement in performance.}
 
 \item{plot_and_evaluation_frequency}{The interval for plotting the performance and checking the patience}
+
+\item{IPCW}{Inverse probability of censoring weights (Warning: not yet correctly implemented)}
 }
 \description{
 This function trains the monotonistic neural network. Fitting the model is done in a step-wise procedure one individual at a time, where the model estimates individual's risk of the disease outcome, estimates the prediction's residual error and adjusts the model parameters to reduce this error. By iterating through all individuals for multiple epochs (one complete iterations through all individuals is called an epoch), we end with parameters for the model, where the errors are smallest possible for the full population. The model fit follows the linear expectation that synergism is a combined effect larger than the sum of independent effects. The initial values, derivatives, and learning rates are described in further detail in the Supplementary material. The monotonistic model ensures that the predicted value cannot be negative. The model does not prevent estimating probabilities above 1, but this would be unlikely, as risks of disease and mortality even for high risk groups in general are far below 1. The use of a test dataset does not seem to assist deciding on the optimal number of epochs possibly due to the constrains due to the monotonicity assumption. We suggest splitting data into a train and test data set, such that findings from the train data set can be confirmed in the test data set before developing hypotheses.

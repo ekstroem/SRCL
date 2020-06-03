@@ -32,6 +32,7 @@ header-includes:
   \usepackage{float} \floatplacement{figure}{htbp} 
 references:
   
+  
 - author:
   - family: Smith
   container-title: IJE
@@ -518,7 +519,7 @@ references:
   container-title: Submitted
   id: rieckmann2020
   issued:
-    year: 2020
+    year: 
   title: Machine Learning models aimed at identifying risk factors for reducing morbidity and mortality may need to consider confounding such as calendar time
   type: article-journal
 - author:
@@ -529,9 +530,8 @@ references:
     year: 2020
   title: Trajectories of childhood adversity and mortality in early adulthood - A population-based cohort study
   type: article-journal  
-  
       
-abstract: Nearly all diseases are multifactual. Yet, most epidemiological studies focus on stand-alone exposures and outcomes. We suggest an approach for epidemiological studies that intends to consider multiple factors (causes, if all assumptions are met) simultaneously with the aim of identifying sets of potentially synergistic risk contributions for morbidity and mortality. With the assumption that exposures either have no effect or always act in the same direction (the monotonicity assumption), we suggest a sequence of procedures, 3 phases of which phase 2 is the core added value by this paper, which we call Synergistic Risk Contributions Learning. The approach builds on a causal model, fitting a monotonistic model on an additive scale, decomposing the risk, cluster individuals based on the risk contributions into sub-groups, and finally hypothesis development and testing in new data e.g. by triangulation. For the model and decomposition, we suggest using a monotonistic neural network and Layer-wise Relevance Propagation. We demonstrate our approach on synthetic data using the provided R package ‘SRCL’ for phase 2. We hope this approach will allow epidemiologists to study multiple factors and their potential synergism for morbidity and mortality in order to eventually develop more effective, targeted, and informed public health interventions.
+abstract: Nearly all diseases are multifactorial. Yet, most epidemiological studies focus on stand-alone exposures and outcomes. We suggest an approach for epidemiological studies that intends to consider multiple factors (causes, if all assumptions are met) simultaneously with the aim of identifying sets of potentially synergistic risk contributions for morbidity and mortality. With the assumption that exposures either have no effect or always act in the same direction (the monotonicity assumption), we suggest a sequence of 3 phases of which phase 2 is the core added value by this paper, which we call Synergistic Risk Contributions Learning. The approach builds on a causal model, fitting a monotonistic model on an additive scale, decomposing the risk, cluster individuals based on the risk contributions into sub-groups, and finally hypothesis development and testing in new data e.g. by triangulation. For the model and decomposition, we suggest using a monotonistic neural network and Layer-wise Relevance Propagation. We demonstrate our approach on synthetic data using the provided R package ‘SRCL’ for phase 2. The approach is focused on binary exposures and outcomes, but may be extended to other measurement types. We hope this approach will encourage epidemiologists to study multiple factors and their potential synergism for morbidity and mortality in order to eventually develop more effective, targeted, and informed public health interventions.
 ---
 
 ```{r setup, include=FALSE}
@@ -563,7 +563,7 @@ Recently, approaches to assess multiple factors simultaneously have been suggest
 
 If "*risk assessment must consider all relevant factors together*", why are so few authors assessing multiple causes and their potential synergism? We suspect it is due to frequently taught frameworks for epidemiologists, which warn against multiple testing [@brankovic2019], complex causal structures (various confounding structures) [@vanderweele2017], and the overwhelming number of combinations between exposures that can be created [@hernan2019]. While we acknowledge the challenges, important insight may be revealed by asking questions about causes of effects such as *"Given a particular outcome, what are the various events which might have been its cause?"*, rather than about effects of causes such as *"What would have occurred if a particular factor were intervened upon and thus set to a different level than it in fact was?"* [@vanderweele2006; @Montavon2018].
 
-In this work, we introduce a framework for potentially synergistic multifactual assessment, the Synergistic Risk Contributions Learning (SRCL), and a corresponding analytical tool which can be installed in R. Based on synthetic data, we show how this approach identifies sub-groups who share causal risk contributing exposures. We also show that classical approaches in epidemiology such as stand-alone effects from causally adjusted models and classify-analyze approaches cannot identify thse sub-groups. We explain how the 3 phases of SRCL can be part of a longer scientific process exploring and justifying causal phenomena. We hope that SRCL will encourage epidemiologists to develop more effective, targeted, and informed public health interventions.
+In this work, we introduce a framework for potentially synergistic multifactorial assessment, the Synergistic Risk Contributions Learning (SRCL), and a corresponding analytical tool which can be installed in R. Based on synthetic data, we show how this approach identifies sub-groups who share causal risk contributing exposures. We also show that classical approaches in epidemiology such as stand-alone effects from causally adjusted models and classify-analyze approaches cannot identify these sub-groups. We explain how the 3 phases of SRCL can be part of a longer scientific process exploring and justifying causal phenomena. We hope that SRCL will encourage epidemiologists to develop more effective, targeted, and informed public health interventions.
 
 <!--
 \color[rgb]{.93,.35,0}
@@ -576,9 +576,9 @@ In this work, we introduce a framework for potentially synergistic multifactual 
 \color{black}
 
 # Synergistic Risk Contributions Learning
-The SRCL framework is aimed at a classical epidemiologcal problem about identifying causes of effects, but our appraoach is enabled by three major developments in the fields of machine learning and causal inference: Firstly, advances in computing and machine learning allow for identification of complex correlation structures (including synergism) in large datasets. Secondly, there has been a recent breakthrough in understanding machine learning (explainable AI such as Layer-Wise Relevance Propagation [LRP]) [@samek2019]. Lastly, by assuming a causal structure of data, models may be interpreted as structural causal models, which allows for causal interpretation [@pearl2016]. To ensure that the approach is embedded in an inductive and deductive scientific process, we suggest following 3 phases, of which our main contribution is related to phase 2, which is the computational part (Figure \ref{fig_overview}):
+The SRCL framework is aimed at a classical epidemiological problem about identifying causes of effects, but our approach is enabled by three major developments in the fields of machine learning and causal inference: Firstly, advances in computing and machine learning allow for identification of complex correlation structures (including synergism) in large datasets. Secondly, there has been a recent breakthrough in understanding machine learning (explainable AI such as Layer-Wise Relevance Propagation [LRP]) [@samek2019]. Lastly, by assuming a causal structure of data, models may be interpreted as structural causal models, which allows for causal interpretation [@pearl2016]. To ensure that the approach is embedded in an inductive and deductive scientific process, we suggest following 3 phases, of which our main contribution is related to phase 2, which is the computational part (Figure \ref{fig_overview}):
 
-![The cyclic 3 phases of the SRCL framework towards inference to the best explanation. Researchers scope their research question and causal structure assumptions phase 1. In phase 2, a monotonistic model is fitted, decomposed and clustered based on the risk contributions. The results are validated and held against other available sources in order to develop new hypotheses that can be tested and validated. \label{fig_overview}](Figures/Overview of the 3 phases.jpg){width=100%}
+![The 3 phases of the SRCL framework towards inference to the best explanation. Researchers scope their research question and causal structure assumptions phase 1. In phase 2, a monotonistic model is fitted, decomposed and clustered based on the risk contributions. The results are validated and held against other available sources in order to develop new hypotheses that can be tested and validated. New understandings will update our causal model. \label{fig_overview}](Figures/Overview of the 3 phases.jpg){width=100%}
 
 1. Propose a causal model: Draw a causal Direct Acyclic Graph of exposures and the outcome based on prior knowledge of exposures of interest, while leaving questions about sets of risk contributions to be identified.
 2. Fitting a monotonistic neural network, decomposing the risk using LRP, and cluster individuals based on the risk contributions. We provide the R package 'SRCL' for phase 2.
@@ -587,13 +587,13 @@ The SRCL framework is aimed at a classical epidemiologcal problem about identify
 ## Phase 1: Specifying the causal model
 In order to interpret associations as causal effects, we need to specify our knowledge about the data generating processes as a causal structure [@hernan2002; @hernan2019]. Directed Acyclic Graphs (DAGs) allows for causal interpretation of associations given certain assumptions (as exchangeability, perfectly measured variables, positivity, no systematic censoring and the stability assumption)[@hernan2019] and are now commonly used in epidemiology [@tennant2019]. DAGs have also been used to conceptualize the sufficient cause model [@VanderWeele2007]. Our causal interest in exploring sets of potentially synergistic risk contributions for morbidity and mortality can be shown in below DAG (Figure \ref{fig_models}A), where $X_i$ denotes exposures, $H_k$ denotes *hidden* synergistic component causes, and $Y$ denotes the outcome.
 
-Our approach builds on the monotonicity assumption that either no effect exists or it always takes the same direction. We denote the monotonicity assumption with + as has previously been done.[@VanderWeele2007] The monotonicity assumption is a limitation of our approach since antagonistic effects may be of interest, but it enables us to identify a reference group with the lowest risk based on the measured exposures and it prevents collider bias when we eventually cluster individuals.
+With the approach, we assume monotonicity i.e. each exposure ,$X_i$, either has no effect exists or it always takes the same direction. We denote the monotonicity assumption with + as has previously been done.[@VanderWeele2007] The monotonicity assumption is a limitation of our approach since antagonistic effects may be of interest, but it enables us to identify a reference group with the lowest risk based on the measured exposures and it prevents collider bias when we eventually cluster individuals (REF).
 
 Given this causal structure, the average causal effect in the total population for being exposed to combination $a$ of the exposures compared with a baseline risk is given by $P(Y_{X_a})-P(Y_{X_{baseline}})$, which can be estimated as $P(Y=1|X^+=a) - P(Y=1|X^+=0)$.
 
-![A) An assumed causal model illustrated using a directed acyclic graph, where $X_i$ denotes the exposures, $H_j$ denotes *hidden* synergistic component cayses, $Y$ denotes the outcome, and $+$ denotes monotonistic effects. B) A monotonistic neural network resemplig the causal model. $X_i^+$ denotes monotonistically coded exposures, $w_{i,j}^+$ denotes non-negative weights, $ReLU_j()$ denotes hidden activation functions using rectified linear units, $-b^+_j$ denotes non-positive intercepts, and $R^{b^+}$ denotes the baseline risk \label{fig_models}](Figures/combined_models.jpg){width=100%}
+![A) An assumed causal model illustrated using a directed acyclic graph, where $X_i$ denotes the exposures, $H_j$ denotes *hidden* synergistic component causes, $Y$ denotes the outcome, and $+$ denotes monotonistic effects. B) A monotonistic neural network resemplig the causal model. $X_i^+$ denotes monotonistically coded exposures, $w_{i,j}^+$ denotes non-negative weights, $ReLU_j()$ denotes hidden activation functions using rectified linear units, $-b^+_j$ denotes non-positive intercepts, and $R^{b^+}$ denotes the baseline risk \label{fig_models}](Figures/combined_models.jpg){width=100%}
 
-Decisions on whether to include distal and proximal causes influences the results [@vanderweele2017]. If we would like to adjust the analytical SRCL model for confounding (e.g. time and seasonality), we can add it as an exposure similarly as in any other regression [@rieckmann2020]. By including the confounder, we block the backdoor path through the confounder [@pearl2016]. Alternatively, we may want to control for a constant effect of a confounder as all individuals were exposed to its reference level (e.g calendar time) assuming it has no interactions with any of the exposures of interest. This may allow us to focus on the exposures of interest, and not let the confounder be a driving factor for the cluster analysis. In this case, we suggest the procedure explained in the Supplementary material, which the SRCL R package also facilitates.
+Decisions on whether to include distal and proximal causes influences the results, [@vanderweele2017] which is elaborated in the discussion. If we would like to adjust the analytical SRCL model for confounding (e.g. time and seasonality), we can add it as an exposure similarly as in any other regression [@rieckmann2020]. By including the confounder, we block the backdoor path through the confounder [@pearl2016]. Alternatively, we may want to control for a constant effect of a confounder as all individuals were exposed to its reference level (e.g calendar time) assuming it has no interactions with any of the exposures of interest. This may allow us to focus on the exposures of interest, and not let the confounder be a driving factor for the cluster analysis. In this case, we suggest the procedure explained in the Supplementary material, which the SRCL R package also facilitates.
 
 
 
@@ -611,7 +611,7 @@ See our discussion about [Proximal and distal causes] and the Supplementary mate
 ## Phase 2: A monotonistic neural network, layer-wise relevance propagation, and clustering risk contributions
 The core added value of this work is the computational procedures for phase 2: fitting a monotonistic neural network with constrained weights, decomposing the risk using LRP, and cluster individuals based on the risk contributions.
 
-The one-hidden layer monotonistic neural network (Figure \ref{fig_models}B) is designed to resemble our DAG with hidden synergistic components (Figure \ref{fig_models}A). With the model, we intend to learn the various synergistic interactions between the exposures and outcome. The model needs to be monotonistic and estimate the risk on an additive scale so that synergism is defined as combined effects that are larger than the sum of individual effects.[@rothman1976] Neural networks include hidden activation functions (if the sum of the input exceeds a threshold, information is passed on), which can model minimum threshold values of interactions between exposures. We need to specify the the number of hidden activation functions and through model fitting, the model may be able to learn both stand-alone and synergistically interacting factors. In Figure \ref{fig_models}B, $X_i^+$ denotes $i$ exposures (coded 0 and 1, where 1 compared with 0 is associated with a positive effect or no effect), and $Y$ denotes the disease outcome (coded 0 and 1). $w_{i,j}^+$ and $w_{j,k}^+$ denotes edge weights (can only take zero or positive values), $ReLU()$ denotes hidden activation functions using Rectified Linear Units (ReLU). ReLU functions return the input value if it is positive, otherwise it returns zero. $-b_j^+$ is an intercept (can effectively only take zero or negative values) that ensures that no effect comes from the hidden activation functions unless some exposures affect it, and the baseline risk, $R^{b^+}$, estimates the baseline risk (can only take zero or positive values).
+The one-hidden layer monotonistic neural network (Figure \ref{fig_models}B) is designed to resemble our DAG with hidden synergistic components (Figure \ref{fig_models}A). With the model, we intend to learn the various synergistic interactions between the exposures and outcome. The model needs to be monotonistic and estimate the risk on an additive scale so that synergism is defined as combined effects that are larger than the sum of individual effects.[@rothman1976] Neural networks include hidden activation functions (if the sum of the input exceeds a threshold, information is passed on), which can model minimum threshold values of interactions between exposures. We need to specify the number of hidden activation functions and through model fitting, the model may be able to learn both stand-alone and synergistically interacting factors. In Figure \ref{fig_models}B, $X_i^+$ denotes $i$ exposures (coded 0 and 1, where 1 compared with 0 is associated with a positive effect or no effect), and $Y$ denotes the disease outcome (coded 0 and 1). $w_{i,j}^+$ denotes edge weights (can only take zero or positive values), $ReLU()$ denotes hidden activation functions using Rectified Linear Units (ReLU). ReLU functions return the input value if it is positive, otherwise it returns zero. $-b_j^+$ is an intercept (can effectively only take zero or negative values) that ensures that no effect comes from the hidden activation functions unless some exposures affect it, and the baseline risk, $R^{b^+}$, estimates the baseline risk (can only take zero or positive values).
 
 In order to learn about synergistic causes, we need a reference group that only has a baseline risk of which we have no information about its causes. The monotonicity assumption helps us here: If one combination of exposures has the lowest risk of the disease outcome, then all effects for the remaining groups are either zero or positive. We suggest that the data is prepared so that all direct effects are positive but overruled by domain expertise.
 
@@ -619,9 +619,9 @@ In order to learn about synergistic causes, we need a reference group that only 
 ### Fitting the monotonistic neural network
 The monotonistic neural network can be denoted as:
 
-$$P(Y=1|X^+)=\sum_{j}\Big(ReLU_j\big(\sum_{i}(w_{i,j}^+X_i^+) - b_j^+\big)\Big) + R^{b^+}$$
+$$P(Y=1|X^+)=\sum_{j}\Big(ReLU\big(\sum_{i}(w_{i,j}^+X_i^+) - b_j^+\big)\Big) + R^{b^+}$$
 
-Fitting the model is done in a step-wise procedure one individual at a time, where the model estimates individual's risk of the disease outcome, estimates the prediction's residual error and adjusts the model parameters to reduce this error. By iterating through all individuals for multiple epochs (one complete iteration through all individuals is called an epoch), we end with parameters for the model, where the errors are smallest possible for the full population. The model fit follows the linear expectation that synergism is a combined effect larger than the sum of independent effects. The initial values, derivatives, and learning rates are described in further detail in the Supplementary material. The monotonistic model ensures that the predicted value cannot be negative. The model does not prevent estimating probabilities above 1, but this would be unlikely, as risks of disease and mortality even for high risk groups in general are far below 1 and because predicted risks are only calculated within the data space for training the model. This should however be ensured by the researcher.
+Fitting the model is done in a step-wise procedure one individual at a time, where the model estimates individual's risk of the disease outcome, estimates the prediction's residual error and adjusts the model parameters to reduce this error. By iterating through all individuals for multiple epochs (one complete iteration through all individuals is called an epoch), we end with parameters for the model, where the errors are smallest possible for the full population. The model fit follows the linear expectation that synergism is a combined effect larger than the sum of independent effects. The initial values, derivatives, and learning rates are described in further detail in the Supplementary material. The monotonistic model ensures that the predicted value cannot be negative. The model does not prevent estimating probabilities above 1, but this would be unlikely, as risks of morbidity and mortality even for high risk groups in general are far below 1 and because predicted risks are only calculated within the data space available. However, the researcher should check that probabilities are not estimated above 1 (The provided R package warns if this happens).
 
 The use of a test dataset does not seem to assist deciding on the optimal number of epochs possibly due to the constrains due to the monotonicity assumption. We suggest splitting data into a train and test data set, such that findings from the train data set can be manually confirmed in the test data set before developing hypotheses.
 
@@ -659,19 +659,19 @@ $$R^{X}_i = \sum_j \Big(\frac{X_i^+ w_{i,j}}{\sum_i( X_i^+ w_{i,j})}R^X_j\Big)$$
 
 This creates a dataset with the dimensions equal to the number of individuals times the number of exposures plus a baseline risk value, which can be termed a *risk contribution matrix*. Instead of exposure values, individuals are given risk contributions, $R^X_i$. The decomposing procedure can be illustrated as in Figure \ref{fig_lrp_flow} (row 1 and 2).
 
-![Decomposing risk contributions (row 1 and 2) with ID B as the example and results from clustered sub-groups (row 3 and 4). The width of the arrows indicate the value of the weights in the weight matrix. The Illustration with ID B shows that information is passed through the activation function, f1(), but the activation function, f3(), does not let information pass through, thus when decomposing the predicted risk, the risk contribution passes through f1() alone and not through f3(). The dendrogram suggests 3 sub-groups. The prevalences and mean risks are shown by sub-group. The table visualise the greatest mean risk contributions by size for each sub-group. \label{fig_lrp_flow}](Figures/Flowchart.jpg){width=90%}
+![Decomposing risk contributions (row 1 and 2) with ID B as the example and results from clustered sub-groups (row 3 and 4). The width of the arrows indicate the value of the weights in the weight matrix. The illustration with ID B shows that information is passed through the activation function, f1(), but the activation function, f3(), does not let information pass through, thus when decomposing the predicted risk, the risk contribution passes through f1() alone and not through f3(). The dendrogram suggests 3 sub-groups. The prevalences and mean risks are shown by sub-group. The table visualize the greatest mean risk contributions by the size for each sub-group. \label{fig_lrp_flow}](Figures/Flowchart.jpg){width=90%}
 
 
 ### Sub-grouping
-We sub-group the individuals based on their exposures' risk contributions (Figure \ref{fig_lrp_flow} row 3, clustered risk contributions). We recommend hierarchical clustering using euclidean distances and the Ward method.[@murtagh2014] Clustering approaches such as k-means give highly unstable results and tend to miss rare subgroups. The presentation of the results depends on the purpose of the study, but the following two plots and one figure may be helpful: A dendrogram with node size representing the prevalence of similar risk contributions can be used to decide the number of sub-groups, a plot of the prevalence and mean risk of sub-groups (inspired by excess probability plots [@eide2001]) help identify sub-groups with a high public health impact, and a table of mean risk contribution by sub-groups can illuminate which exposures elevated the risk in each sub-group. If the risk contribution to one factor is larger for one sub-group than for another sub-group, this may be an indication of synergism, and further cross tabulations of these combinations can be done including estimating sufficient cause interactions.
+We sub-group the individuals based on their exposures' risk contributions (Figure \ref{fig_lrp_flow} row 3, clustered risk contributions). We recommend hierarchical clustering using Manhattan distances$^{footnote}$^[Manhattan distances and the Ward method are not unifiable - we are looking into whether the ward method can be modified] and the Ward method.[@murtagh2014] Clustering approaches such as k-means give highly unstable results and tend to miss rare subgroups. The presentation of the results depends on the purpose of the study, but the following two plots and one table may be helpful: A dendrogram with node size representing the prevalence of similar risk contributions can be used to decide the number of sub-groups, a plot of the prevalence and mean risk of sub-groups (inspired by excess probability plots [@eide2001]) help identify sub-groups with a high public health impact, and a table of mean risk contribution by sub-groups can illuminate which exposures elevated the risk in each sub-group. If the risk contribution to one factor is larger for one sub-group than for another sub-group, this may be an indication of synergism, and further cross tabulations of these combinations can be done including estimating sufficient cause interactions.
 
 ### R package
 We provide the R package 'SRCL' for phase 2, which can be installed in R using the command *devtools::install_github('ekstroem/SRCL')* via the devtools package.
 
 ## Phase 3: Hypothesis development and testing
-The results of phase 2 provided us with empirical information about synergistic risk contributions. This evidence should be interpreted in light of the causal model that was specified in phase 1 and thereby potentially add to new hypotheses about multifactual etiology. Furthermore, the empirical evidence from phase 2 highlights the prevalence of these clusters in the population and may direct attention towards groups with a potentially larger public health impact. It may be that unmeasured confounding influenced our results based on our prior understanding, which suggests that further work needs to be conducted to understand how risk may be mitigated for the high risk groups. The major gain by using this approach is that the risk groups can be defined by words rather than a black box algorithm.
+The results of phase 2 may provide us with empirical information about synergistic risk contributions. This evidence should be interpreted in light of the causal model that was specified in phase 1 and thereby potentially add to new hypotheses about multifactorial etiology. Furthermore, the empirical evidence from phase 2 highlights the prevalence of these clusters in the population and may direct attention towards groups with a potentially larger public health impact. It may be that unmeasured confounding influenced our results based on our prior understanding, which suggests that further work needs to be conducted to understand how risk may be mitigated for the high risk groups. The major gain by using this approach is that the risk groups can be defined by words rather than a black box algorithm.
 
-To verify these findings, the natural next step is validating the findings in external population (either temporal validation or more desirable, external validation). If replicate, the researchers need to provide evidence that the replicate finding is causal (and not due to similar bias structures) for example using various triangulation approaches with orthogonal bias structures [@lawlor2016] including e.g. studies outside the epidemiological field such as animal studies. Eventually, if possible, the hypotheses needs to be tested using some randomized set-up such as natural experiments, Mendelian randomization, or RCTs.
+To verify these findings, the natural next step is validating the findings in external population (either temporal validation or more desirable, external validation). If replicable, the researchers need to provide evidence that the replicated finding is causal (and not due to similar bias structures) for example using various triangulation approaches with orthogonal bias structures [@lawlor2016] including e.g. studies outside the epidemiological field such as animal studies. Eventually, if possible, the hypotheses needs to be tested using some randomized set-up such as natural experiments, Mendelian randomization, or RCTs.
 
 
 # SRCL demonstration
@@ -685,9 +685,10 @@ One conventional approach to assess the importance of multiple factors for a giv
 
 
 ```{r linear effect, echo=FALSE}
-#mean(data$Y[data$Non_smoking==0 &data$LDL==1&data$Night_shifts==1])
-#mean(data$Y[data$Mutation_X==1 & data$Air_pollution == 1])
 library(knitr)
+library(SRCL)
+#set.seed(1)
+#data <- SRCL_0_synthetic_data(40000)
 load("Motivating.RData")
 
 in_fun <- function(fit) {paste0(format(round(summary(fit)$coefficients[2,1]*100,1),nsmall=1)," (",format(round(confint(fit)[2,1]*100,1),nsmall=1)," to ",format(round(confint(fit)[2,2]*100,1),nsmall=1),")")}
@@ -698,7 +699,7 @@ for (i in 2:7) {
 }
 
 
-tab[1,2] <- in_fun(lm(Y~Non_smoking + Low_SES,data=data)) 
+tab[1,2] <- in_fun(lm(Y~Physically_active + Low_SES,data=data)) 
 tab[2,2] <- in_fun(lm(Y~Low_SES,data=data))
 tab[3,2] <- in_fun(lm(Y~Mutation_X+LDL,data=data))
 tab[4,2] <- in_fun(lm(Y~LDL+Mutation_X,data=data))
@@ -706,7 +707,7 @@ tab[5,2] <- in_fun(lm(Y~Night_shifts + Low_SES+Air_pollution,data=data))
 tab[6,2] <- in_fun(lm(Y~Air_pollution+Night_shifts+Low_SES,data=data))
 
 colnames(tab) <- c("Additional cases per 100 persons (95% CI)","Additional cases per 100 persons, adjusted (95% CI)")
-var_names <- c("Non-smoking$^a$","Low SES","Mutation X$^b$", "LDL$^c$","Night shifts$^d$","Air pollution$^e$")
+var_names <- c("Physically active$^a$","Low SES","Mutation X$^b$", "LDL$^c$","Night shifts$^d$","Air pollution$^e$")
 rownames(tab) <- var_names
 tab <- tab[,2]
 kable(cbind(var_names,tab), caption = c("Stand-alone effects from causally adjusted model"),col.names= c("Exposures","Additional cases per 100 persons (95% CI)"))
@@ -722,10 +723,11 @@ kable(cbind(var_names,tab), caption = c("Stand-alone effects from causally adjus
 
 ```{r basic clustering, echo=FALSE}
 #library(knitr)
-#load("Motivating.RData")
+#save(data,groups,file="Motivating.RData")
+load("Motivating.RData")
 
-# library(fastcluster)
-# groups  <- cutree(hclust(dist(data[1:10000,2:7]),"ave"),5)
+#library(fastcluster)
+#groups  <- cutree(hclust(dist(data[,2:7],"euclidean"),"ward.D"),5)
 # groups <- as.numeric(groups)
 library(readr)
 mydata <- summary(data[groups==1,1:7])
@@ -744,14 +746,14 @@ tab2 <- rbind(tab[2,],tab[3,],tab[4,],tab[5,],tab[6,],tab[7,],tab[1,])
 tab <- tab2
 tab <- as.data.frame(tab)
 colnames(tab) <- 1:5
+var_names <- c("Physically active","Low SES","Mutation X", "LDL","Night shifts","Air pollution")
 rownames(tab) <- c(var_names,"Risk of disease Y")
 tab <- round(tab*100,0)
 for (i in 1:nrow(tab)) tab[i,] <- paste0(tab[i,],"%")
 #tab <-rbind(tab[1:6,],"",tab[7:8,])
 #library(kableExtra)
-colnames(tab) <- paste0(c("Group 1", "Group 2", "Group 3", "Group 3", "Group 3"), paste0(" (",round((table(groups)/length(groups) ) * 100),"%)"))
+colnames(tab) <- paste0(c("Group 1", "Group 2", "Group 3", "Group 4", "Group 5"), paste0(" (",round((table(groups)/length(groups) ) * 100),"%)"))
 
-tab <- tab[,c(1,2,4)]
 tab <- rbind(tab[1:6,],"",tab[7,])
 rownames(tab)[7] <- "Step 2:"
 tab <- rbind("",tab)
@@ -763,7 +765,7 @@ rownames(tab)[1] <- "Step 1:"
 
 ```
 
-Another frequently used approach for estimating disease risk for a population with multiple exposures is to classify individuals into sub-groups by their exposure distributions and then estimate the risk of the disease by each sub-group. For example, some of the authors of this paper used a multi-dimensional trajectory approach to discover trajectories of childhood adversities (0-15 years) among more than 1 million Danish individuals, and subsequently estimated the mortality rate in each trajectory [@rod2020]. Below, we used hierarchical clustering (Euclidean distances and the Ward method[@murtagh2014]) to identify 5 sub-groups of which 2 groups had a total of `r table(groups)[order(table(groups))][2]` or less observations and thus not shown. As demonstrated, the clustering approach separates the exposure distributions shown be marked prevalence difference between the groups, e.g. sub-group 2 captures a high proportion of those with *Mutation X*. This approach, however, does not necessarily identify which most relevant combinations of exposures are associated with elevated risks, because the clustering approach is optimized solely on combinations of exposure information.
+Another frequently used approach for estimating disease risk for a population with multiple exposures is to classify individuals into sub-groups by their exposure distributions and then estimate the risk of the disease by each sub-group. For example, some of the authors of this paper used a multi-dimensional trajectory approach to discover trajectories of childhood adversities (0-15 years) among more than 1 million Danish individuals, and subsequently estimated the mortality rate in each trajectory [@rod2020]. Below, we used hierarchical clustering (Euclidean distances and the Ward method[@murtagh2014]) to identify 5 sub-groups. As demonstrated, the clustering approach separates the exposure distributions shown be marked prevalence difference between the groups, e.g. sub-group 2 is defined entirely by physically activity and the absence of other exposures. This approach, however, does not necessarily identify which most relevant combinations of exposures are associated with elevated risks, because the clustering approach is optimized solely on combinations of exposure information, which is also seen in this scenario as the risk of Y are approximately similar across all sub-groups.
 
 ```{r}
 kable(tab, caption = "Classify-analyze results")
@@ -775,55 +777,27 @@ Let us assess the SRCL demonstration from Figure \ref{fig_motivating}A. As in a 
 
 ## SRCL phase 2
 
-Our data simulation included relatively rare outcomes with a high degree of uncertainty so that both a baseline risk exists as well as even if individuals are exposed to all component causes, their risks are far from deterministic. Due to the data generation mechanisms, our expectations to data are that `r round((1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)*100,1)`% are exposed to cause 1: Not *non-smoking* and *LDL* and *Night shift*, which increases the risk by 15%. We expect that this cause constitute `r round((0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)) / ((1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (0.8-0.2*0.2)*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100,1)`% of the cases. *Mutation X* and *Air pollution* has a prevalence of `r round(0.05*0.95*(0.2*0.3+0.2)*100,1)`% and increases the risk of the disease by 10%. This combination of component causes cause `r round((0.1 * (0.05*0.95)*(0.2*0.3+0.2)) / (1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)))*100,1)`% of the cases. See supplementary material.
+Our data simulation included relatively rare outcomes with a high degree of uncertainty so that both a baseline risk exists as well as even if individuals are exposed to all component causes, their risks are far from deterministic. Due to the data generation mechanisms, our expectations to data are that 1.8% are exposed to cause 1: Not *non-smoking* and *LDL* and *Night shift*, which increases the risk by 15%. We expect that this cause constitute 4.9% of the cases. *Mutation X* and *Air pollution* has a prevalence of 1.2% and increases the risk of the disease by 10%. This combination of component causes cause 2.3% of the cases. See supplementary material. Based on domain expertise on the causal relation between physical activity and health, we recode physically active so that not-physically active is coded 1 and and physically active is coded 0.
 
-Using stochastic gradient decent, we fitted a monotonistic neural network with 5 hidden states (5 is arbitrary, and the researchers should confirm that adding more hidden states do not change the results. We expect that the model complexity can be saturated) and with 100 epochs of patience each for a learning rate of $10^{-2}$, $10^{-3}$, $10^{-4}$ and $10^{-5}$, with no momentum and a batch size of 1. The trained model structure and its accuracy (as ROC AUC) for one analysis are shown in Figure \ref{fig_results} (a tutorial with the R code to replicate our results using the SRCL package is included in the Supplementary material). Notice that the accuracy measured by ROC AUC is low (0.55; where 0.5 indicates random prediction). The shape of the ROC indicates that the model was not able to achieve high prediction accuracy for the overall population (unknown factors had a high influence on the data generating process). However, the initial step increase in the shape of the ROC indicates differential predictive performance.
+Using stochastic gradient decent, we fitted a monotonistic neural network with 5 hidden states (5 is arbitrary, and the researchers should confirm that adding more hidden states do not change the results. We expect that the model complexity can be saturated) and with 100 epochs of patience each for a learning rate of $10^{-4}$, $10^{-5}$, and $10^{-6}$, with no momentum and a batch size of 1. The trained model structure and its accuracy (as ROC AUC) for one analysis are shown in Figure \ref{fig_results} (a tutorial with the R code to replicate our results using the SRCL package is included in the Supplementary material). Notice that the accuracy measured by ROC AUC is low (0.55; where 0.5 indicates random prediction).
 
-The dendrogram suggests 3 groups. The results of clustering the risk contribution matrix to 3 sub-groups are shown in the combined plot and the matrix of the median risk contributions by sub-group in Figure \ref{fig_results}. First, we find that that the baseline risk approximates the expected baseline risk of 0.05. We also find that the correct causes are identified (Cause 1 with: Not *non-smoking* and *LDL* and *Night shift*. Cause 2 with: *Mutation X* and *Air pollution*), and the risk contribution is close to the data generating process. Not only are the component causes identified, but also the proportion of cases attributed to these causes are close to the expected proportion (Figure \ref{fig_results} and Supplementary material). In a real world dataset, these findings should be confirmed in a hold out test dataset before used for hypotheses development.
+The dendrogram suggests 3 groups. The results of clustering the risk contribution matrix to 3 sub-groups are shown in the combined plot and the matrix of the median risk contributions by sub-group in Figure \ref{fig_results}. First, we find that that the baseline risk approximates the expected baseline risk of 0.05 (as illustrated by the lower horizontal line in Figure \ref{fig_results}E and shown in Figure \ref{fig_results}F under baseline_risk). We also find that the correct causes are identified (Cause 1 with: Not *non-smoking* and *LDL* and *Night shift*. Cause 2 with: *Mutation X* and *Air pollution*) as shown in Figure \ref{fig_results}F by the composition of risk contributions to sub-group 2 and sub-group 3. The predicted risk, as shown under "risk" in Figure \ref{fig_results}F is close to the data generating process, but also the measured risk in each cluster, "obs risk" as well as the cross tabulated risk according to the components "SG1" and "SG2". Not only are the component causes identified, but also the proportion of cases attributed to these causes, as seen under "excess" in Figure \ref{fig_results}F, are close to the expected proportion (Supplementary material). In a real world dataset, these findings should be confirmed in a hold out test dataset before used for hypotheses development.
 
-```{r}
-c1 <- c(2.3,1.6,2.0,1.4,1.8,2.8,2.1,1.7,2.6,1.9,1.8,1.8,2.1,1.6,2.0,2.2,2.0,2.4,1.4,1.8,1.4,2.4,1.5,2.3,1.4,1.9,1.8,2.3,1.5,2.5,1.5,2.1,1.3,2.6,2.0,2.4,2.8)
-c2 <- c(2.8,4.1,3.7,3.5,3.5,3.1,5.1,4.3,3.7,4.1,3.8,4.4,3.2,4.2,4.5,4.2,3.5,4.5,4.4,4.4,4.1,4.7,3.9,4.1,3.3,3.2,3.6,3.6,3.2,3.4,3.9,4.2,3.9,3.8,5.1,5.7,3.5)
-
-
-# fit1 <-t.test(c1,mu= ((0.1 * (0.05*0.95)*(0.2*0.3+0.2)) / (1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100)
-fit1 <-t.test(c1)
-# fit2 <- t.test(c2,mu=(0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)) / ((1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (0.8-0.2*0.2)*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100)
-fit2 <- t.test(c2)
-```
-
-```{r,fig.height=1,eval=FALSE}
-library(beeswarm)
-par(mar=c(2,0,0,0))
-beeswarm(c1,horizontal = T,axes=FALSE,yaxs='i',pch=16,cex=.5)
-axis(1)
-abline(v=((0.1 * (0.05*0.95)*(0.2*0.3+0.2)) / (1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100)
-
-```
-
-```{r,fig.height=1, eval=F}
-library(beeswarm)
-par(mar=c(2,0,0,0))
-beeswarm(c2,horizontal = T,axes=F,yaxs='i',pch=16,cex=.5)
-axis(1)
-abline(v=(0.15* (1-(0.8-0.2*0.2))*(0.3+0.02*0.15)*(0.2+0.2*0.1)) / ((1- (1-0.05) * (1-0.1 * (0.05*0.95)*(0.2*0.3+0.2)) * (1-0.15* (0.8-0.2*0.2)*(0.3+0.02*0.15)*(0.2+0.2*0.1))))*100)
-```
-
-When running the data generating process and phase 2 for 100 simulations (Supplementary material), we can identify both combinations of component causes in all examples. The mean estimation of proportion of cases due to not *physically active* and *LDL* and *Night shift* was _______%, where the theoretical proportion would be ______%. The mean estimation of proportion of cases due to *Mutation X* and *Air pollution* was _________%, where the theoretical proportion of cases would be _____%. These results indicate that the true proportion of cases is consistently underestimated. Finite sample sizes and noise signals could cause an underestimation of the true proportion of cases.
+When running the data generating process and phase 2 for 100 simulations (Supplementary material), we can identify both combinations of component causes in 99 out of 100 simulations (online zip file). However, these results indicate that the true proportion of cases is consistently underestimated. Finite sample sizes and noise signals could cause an underestimation of the true proportion of cases.
 
 
 
-![The performance plot shows the decline in mean squared error by each epoch of training. The model plot shows the trained monotonistic neural network. The accuracy plot shows the ROC AUC. The dendrogram shows the similarity of risk contributions by individuals. The prevalence and mean risk of sub-groups plot gives an indication of which sub-group carries the greatest disease burden. The table of mean risk contributions by sub-group elaborates which exposures elevate the risk for the specific groups. In the last table; n is the number of individuals in the sub-group, e is the number of events in the sub-group, prev is the prevalence of the sub-group, risk is the estimated risk for the sub-group, excess is the estimated proportion of cases above baseline in this sub-group, and observed risk gives the 95% confidence interval for the risk of being a case in the subgroup estimated from the actual proportion of cases in the sub-group. By cross tabulation, the risk in each of the two causes are shown with SG1 and SG2 for this data simulation.  \label{fig_results}](Figures/SCL.png){width=100%}
+![A) The performance plot shows the decline in mean squared error by each epoch of training. B) The model plot shows the trained monotonistic neural network. C) The accuracy plot shows the ROC AUC. D) The dendrogram shows the similarity of risk contributions by individuals. E) The prevalence and mean risk of sub-groups plot gives an indication of which sub-group carries the greatest disease burden. F) The table of mean risk contributions by sub-group elaborates which exposures elevate the risk for the specific groups. In the last table; n is the number of individuals in the sub-group, e is the number of events in the sub-group, prev is the prevalence of the sub-group, risk is the estimated risk for the sub-group, excess is the estimated proportion of cases above baseline in this sub-group, and observed risk gives the 95% confidence interval for the risk of being a case in the subgroup estimated from the actual proportion of cases in the sub-group. By cross tabulation, the risk in each of the two causes are shown with SG1 and SG2 for this data simulation.  \label{fig_results}](Figures/SCL.png){width=100%}
 
 ## SRCL phase 3
-Based phase 1 and 2, we can redraw our DAG to assist our understanding of synergetic interactions and where interventions may have the greatest impact. Our observations suggest that causes 1 with: Not *non-smoking* and *LDL* and *Night shift* contributes to the largest share of cases. This may lead to an hypothesis of multidimentional stress on the immune system. A biological rationale would help scope further studies e.g a nested cohort study with baseline blood samples for immune cell counts, cholesterol measurements, and an elaborate questionnaire or re-analyses of data from a smoking cessation intervention on whether night shift workers experienced a greater benefit than day time workers.
+Based phase 1 and 2, we can redraw our DAG to assist our understanding of synergistic interactions and where interventions may have the greatest impact. Our observations suggest that causes 1 with: Not *physically active* and *LDL* and *Night shift* contributes to the largest share of cases. This may lead to an hypothesis of multidimentional stress on the immune system. A biological rationale would help scope further studies. Existing data could further test the hypothesis e.g. using a nested cohort study with baseline blood samples for immune cell counts, cholesterol measurements, and an elaborate questionnaire or re-analyses of data from an exercise intervention on whether night shift workers experienced a greater benefit than day time workers. If the hypotheses was supported, it may then be tested using a randomised design.
 
 # Discussion
-We have demonstrated the SRCL approach, which facilitates potentially synergistic multifactual assessment within a pre-specified causal structure. New learnings can be formulated as hypotheses and do not rely on a black box algorithm. The hypotheses can be challenged e.g. using triangulating from various sources of data.
+We have demonstrated the SRCL approach, which facilitates potentially synergistic multifactorial assessment within a pre-specified causal structure. New learnings can be formulated as hypotheses and do not rely on a black box algorithm. The hypotheses can be challenged e.g. using triangulating from various sources of data.
 
 
 ## Limitations
-As outlined in the introduction, the task of assessing multiple factors and allowing for synergism is challenging, and our approach has limitations. With the aim of approximating causal effects, our approach builds on the assumptions of a true causal structure, exchangeability, perfectly measured variables, positivity, no systematic censoring and the stability assumption, which have all been explained in detail elsewhere.[@hernan2019] In addition, we will highlight some of the most relevant limitations to the SRCL approach.
+As outlined in the introduction, the task of assessing multiple factors and allowing for synergism is challenging, and our approach has limitations. With the aim of approximating causal effects, our approach builds on the assumptions of a true causal structure, exchangeability, perfect measurements, positivity, no systematic censoring and the stability assumption, which have all been explained in detail elsewhere.[@hernan2019] In addition, we will highlight some specific limitations to the SRCL approach.
 
 <!--
 ### Uncertainty and chance findings
@@ -840,7 +814,7 @@ and Data Science
 
 <!-- ### Different structures could lead to similar results
 -->
-Co-occurring associations can be due to five causal structures: Interactions, exposures sharing a common cause (clustered), mediation as well as due to unmeasured confounding and by conditioning on an effect (M-bias). These structures are shown in Figure (Figure \ref{fig_causal_structures}), where A and B denotes measured exposures of interest, U denotes an unmeasured cause of A and B, Y denotes the outcome. Only for the first structure, *interactions*, it holds that the combined effect is different from the sum of the individual effects. When studying non-randomized epidemiological studies, complex combinations of all of the structures above can expected. Researchers will need to assess various potential hypotheses through e.g. triangulation to determine the likelihood of each explanatory capacity. If the researcher's aim is not to uncover etiology, SRCL can also be used for the identification of high risk groups by key identifying factors, which can easily be communicated and used independently of the model in opposition to black box algorithms.
+Co-occurring associations can be due to five causal structures: Interactions, exposures sharing a common cause (clustered), mediation as well as due to unmeasured confounding and by conditioning on an effect (M-bias). These structures are shown in Figure (Figure \ref{fig_causal_structures}), where A and B denotes measured exposures of interest, U denotes an unmeasured cause of A and B, Y denotes the outcome. Only for the first structure, *interactions*, does it hold that the combined effect is different from the sum of the individual effects. When studying non-randomized epidemiological studies, complex combinations of all of the structures above can expected. Researchers will need to assess various potential hypotheses through e.g. triangulation to determine the likelihood of each explanatory capacity. If the researcher's aim is not to uncover etiology, SRCL can also be used for the identification of high risk groups by key identifying factors, which can easily be communicated and used independently of the model in opposition to black box algorithms.
 
 ![Five types of causal structures causing co-occurring associations. \label{fig_causal_structures}](Figures/figures.jpg){width=100%}
 
@@ -863,26 +837,28 @@ Rose described chains of causes by separating causes into distal and proximal ca
 
 <!-- ### Binary operationalisation and extensions
 -->
-The version of SRCL we have presented deals with binary exposures and outcomes. The approach can be extended to continuous outcomes, where the value 0 has a meaningful interpretation. An example could be the use of *loss of disease-free years*, which is continuous, 0 has a meaningful interpretation, and the mean expected values will be the mean loss of disease-free years in the sub-group. However, if measuring BMI, zero would not take a meaningful interpretation. Multiple other extensions of SRCL may be possible (e.g. ways to further incorporate time), and we encourage others to explore these. The best presentation of the results will depend on the aim and extensions of SRCL.
+The version of SRCL we have presented deals with binary exposures and outcomes. The approach can be extended to continuous outcomes, where the value 0 has a meaningful interpretation. An example could be the use of *loss of disease-free years*, which is continuous, 0 has a meaningful interpretation, and the mean expected values will be the mean loss of disease-free years in the sub-group. However, if measuring BMI, zero would not take a meaningful interpretation. Multiple other extensions of SRCL may be possible (e.g. ways to incorporate time), and we encourage others to explore these. The best presentation of the results will depend on the aim and extensions of SRCL.
 
 ## Comparison with other approaches
 
-Our SRCL demonstration showed how commonly applied approaches in epidemiology, such as causally adjusted models and classify-analyze approaches, both fails to identify synergistic causes. Many epidemiologists are also familiar with latent class analysis, which attempt to model latent classes causing the exposure distributions. This is conceptually different from our aim as illustrated in Figure \ref{fig_models}A, as we are conceptually interested in the combinations of exposure, which synergistically ineract (/become sufficient to cause the outcome). Common use of latent class analyses for morbidity and mortality can be categorized as classify-analyze approach, but an extended version which simultaneously fit latent classes with a distal outcomes exists [@lanza2013]. However, besides the conceptual difference, there are important drawbacks of this approach such as that common non-causal exposures will be presented for all classes even if they are of not causal and that conditionality may be introduce so that if one group is defined by a high prevalence of an exposure, then other groups will be defined by a low prevalence of the exposure even when it is has no causal effect for the other groups.
+Our SRCL demonstration showed how commonly applied approaches in epidemiology, such as causally adjusted models and classify-analyze approaches, both fails to identify synergistic causes. Many epidemiologists are also familiar with latent class analysis, which attempt to model latent classes causing the exposure distributions. This is a different aim than ours (Figure \ref{fig_models}A), as we are conceptually interested in the combinations of exposure, which synergistically interact i.e. become sufficient to cause the outcome. Common use of latent class analyses for morbidity and mortality can be categorized as classify-analyze approach, but an extended version which simultaneously fit latent classes with a distal outcomes exists [@lanza2013]. However, besides the conceptual difference, there are important drawbacks of this approach if it was to be used to identify synergism since common non-causal exposures will be presented for all classes even if they are of not causal. Further, conditionality may be introduce so that if one group is defined by a high prevalence of an exposure, then other groups will be defined by a low prevalence of the exposure even when it is has no causal effect for the other groups.
 
 The SRCL approach relies on LRP, which has previously been successfully demonstrated in fields other than epidemiology, such as image, text and biological data classification [@Samek2016; @Arras2017; @Sturm2016]. LRP has also been used on health records to explain clinical decisions on therapy assignment [@Yang2018] but in this case neither a baseline risk was estimated nor was there interest in identifying sub-groups. Alternative methods to decompose neural network predictions into input relevances/contributions were proposed recently, such as DeepLIFT [@shrikumar2019] or Integrated Gradients [@sundararajan2017]. However only LRP and its Deep Taylor Decomposition variant fit our assumption of a monotonistic neural network, and allow a seamless interpretation of relevances as risk contributions in our causal inference setup.[@Montavon2017] We did not want to consider perturbation-based explanation techniques such as LIME [@ribeiro2016], since our question of interest is causes of effects such as "*Given a particular outcome, what are the various events which might have been its cause?*" rather than effects of causes such as "*What would have occurred if a particular factor were intervened upon and thus set to a different level than it in fact was?*" - aspects which has been previously discussed both in the causal inference literature [@vanderweele2006] and in the literature on LRP [@Montavon2018]. Furthermore, perturbation-based methods produce localized explanations which may not be generalize to global causal pathways [@Samek2016; @zeiler2013; @fong2017].
 
 ## Conclusion
-We have demonstrated a line of procedures with the aim of assessing multiple factors (causes, if assumptions are met) and their potential synergism. The procedures are based on prior knowledge of the causal structure, the analytical approach enabled by the flexibility of a monotonistic neural network, the LRP explanation technique for decomposing risk contributions and clustering (the R package "SRCL" allows epidemiologists to implement this), and, finally, hypothesis development and testing using classical methods. These are steps towards transparency allowing others to replicate hypothesized causal findings from machine learning models in health care, which is increasingly warranted [@beam2020; @holzinger2019]. We hope this approach will allow epidemiologists to conduct studies assessing multiple factors with potential synergism and eventually make more effective, targeted, and informed public health interventions and policy.
+We have demonstrated a line of procedures with the aim of assessing multiple factors (causes, if assumptions are met) and their potential synergism. The procedures are based on prior knowledge of the causal structure, the analytical approach enabled by the flexibility of a monotonistic neural network, the LRP explanation technique for decomposing risk contributions and clustering (the R package "SRCL" allows epidemiologists to implement this), and, finally, hypothesis development and testing using classical methods. These are steps towards transparency allowing others to replicate hypothesized causal findings from machine learning models in health care, which is increasingly warranted [@beam2020; @holzinger2019]. We hope this approach will encourage epidemiologists to conduct studies assessing multiple factors with potential synergism and eventually make more effective, targeted, and informed public health interventions and policy.
 
 ### Acknowledgment
-The authors would like to the colleagues at Section of Epidemiology for valuable comments and suggestions on the idea throughout the development. RW, S for reading and commenting on the paper. TKN for assistance with the dendrogram.
+The authors would like to the colleagues at Section of Epidemiology for valuable comments and suggestions on the idea throughout the development. <!--TKN for assistance with the dendrogram.
+
+RW, S for reading and commenting on the paper. -->
 
 ### Funding
 AR was supported by an international postdoc grant by the Independent Research Fund Denmark (9034-00006B). PD was supported by a research grant from the Danish Diabetes Academy funded by the Novo Nordisk Foundation
-
+<!--
 ### Author contributions
 
-<!--
+
 
 ### Author contribution
 
@@ -899,14 +875,14 @@ AR was supported by an international postdoc grant by the Independent Research F
 
 ## Initial values, derivatives, and learning rates
 
-The error is defined as the output minus the predicted value and denoted $E$, the output is denoted $O$, the value taken by each of the hidden $ReLU()_j$ activation functions are denoted $H_j$, the pre-hidden $ReLU()_j$ activation function values are denoted $h_j$, the weights are denoted $w_{i,j}$ and $w_{j,k}$, the intercepts for the hidden $ReLU()_j$ activation functions are denoted $b_j$, the baseline risk is denoted $R^{b^+}$, and the exposures are denoted $X_i^+$.
+The predicted value is denoted $O$, the true outcome is denoted $Y$, the error is estimated as $\frac{(O-Y)^2}{2}$ and denoted $E$, the value taken by each of the hidden $ReLU_j()$ activation functions are denoted $H_j$, the pre-hidden $ReLU()_j$ activation function values are denoted $h_j$, the weights are denoted $w_{i,j}^+$, the intercepts for the hidden $ReLU()_j$ activation functions are denoted $-b_j^+$, the baseline risk is denoted $R^{b^+}$, and the exposures are denoted $X_i^+$.
 
 ```{r}
 values <- c("abs(0 (0.01))","-abs(0 (0.01))","abs(0 (0.01))")
 values <- (data.frame(values))
 rownames(values) <-  c("$w_{i,j}^+$","$-b_{j}^+$","$R^{b^+}$")
-values$Update <- c("$\\frac{\\delta E}{\\delta w_{ij}} = \\frac{\\delta E}{\\delta O}\\cdot\\frac{\\delta O}{\\delta H_j}\\cdot\\frac{\\delta H_j}{\\delta h_j}\\cdot\\frac{\\delta h_j}{\\delta w_{ij}}$",
-                      "$\\frac{\\delta E}{\\delta b_j} = \\frac{\\delta E}{\\delta O}\\cdot\\frac{\\delta O}{\\delta H_j}\\cdot\\frac{\\delta H_j}{\\delta h_j}\\cdot1$",
+values$Update <- c("$\\frac{\\delta E}{\\delta w_{i,j}^+} = \\frac{\\delta E}{\\delta O}\\cdot\\frac{\\delta O}{\\delta H_j}\\cdot\\frac{\\delta H_j}{\\delta h_j}\\cdot\\frac{\\delta h_j}{\\delta w_{ij}}$",
+                      "$\\frac{\\delta E}{\\delta -b_j^+} = \\frac{\\delta E}{\\delta O}\\cdot\\frac{\\delta O}{\\delta H_j}\\cdot\\frac{\\delta H_j}{\\delta h_j}\\cdot1$",
                       "$\\frac{\\delta E}{\\delta R^{b^+}} = \\frac{\\delta E}{\\delta O}\\cdot1$
                    ")
 values$lr <- c("learning rate","learning rate","learning rate / 10")
@@ -939,23 +915,23 @@ Where: $\frac{\delta E}{\delta O} = O - Y, \frac{\delta O}{\delta H_{j}} = w_{j,
 ## Control for a constant effect of a confounder as all individuals were exposed to its reference level
 To control for a constant effect of a confounder as all individuals were exposed to its reference level (e.g. calendar time), we need to assume it does not interact with any of the exposures. This may allow us to focus on the exposures of interest for the cluster analysis as had all individuals had the same reference level of the confounder. In this case, we connect the confounder to the output layer as in below figure. The SRCL R package also facilitates this approach.
 
-In below figure, the $C$ denotes a confounder. Given below causal structure, the average causal effect in the total population for being exposed to combination a of the exposures compared with combination b of the exposures is thus given by $P(Y_{X_a,C=0})-P(Y)_{baseline} = P(Y=1|X^+_a,C^+=0) - P(Y=1|X^+=0,C^+=0)$.
+In below figure, the $C$ denotes a confounder. Given below causal structure, the average causal effect in the total population for being exposed to combination a of the exposures compared with combination b of the exposures is thus given by $P(Y_{X_a,C=0})-P(Y_{baseline}) = P(Y=1|X^+_a,C^+=0) - P(Y=1|X^+=0,C^+=0)$.
 
 ![](Figures/combined_models_confounder.jpg){width=100%}
 
 This changes the denotation of the fitted monotonistic neural network to:
 
-$$P(Y=1|X^+,C^+)=\sum_{j}\Big(w_{j,k}relu_j\big(\sum_{i}(w_{ij}X_i^+) + b_j\big)\Big) + c^+C^+ + R^{b^+}$$
+$$P(Y=1|X^+,C^+)=\sum_{j}\Big(ReLU\big(\sum_{i}(w_{ij}X_i^+) + b_j\big)\Big) + c^+C^+ + R^{b^+}$$
 
 We then decompose the predicted risk had $C^+$ been its reference of zero, $P(Y=1|X^+,C=0)$ into the reference baseline risk, $R^{b^+}$, and the risk contributions of exposures, $R^X_i$:
 
-$$P(Y=1|X^+,C^+=0)=R^{b^+}\sum_iR^X_i$$
+$$P(Y=1|X^+,C^+=0)=R^{b^+}+\sum_iR^X_i$$
 
 The decomposition of the risk contributions for exposures, $R^X_i$, now takes these 3 steps:
 
 Step 1 - Subtract the baseline risk, $R^{b^+}$: $R^X_k =  P(Y=1|X^+,C^+=0)-R^{b^+}$
 
-Step 2 - Decompose to the hidden layer: $R^{X}_j =  \frac{H_j w_{j,k}}{\sum_j(H_j w_{j,k})} R^X_k$
+Step 2 - Decompose to the hidden layer: $R^{X}_j =  \frac{H_j}{\sum_jH_j} R^X_k$
 
 <!--
 $$R^X_j =  \frac{H_j e^{w_{j,k}}}{\sum_j(H_j e^{w_{j,k}})} \Big(P(Y=1|X)-f_k(b_k)\Big)$$
@@ -1145,9 +1121,9 @@ We first initiate the monotonistic neural network with the number of exposures a
 ```{r,echo=T,eval=F}
 # Model fit
 model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
-for (lr_set in c(0.01,0.001,0.0001,0.00001)) {
+for (lr_set in c(0.0001,0.00001,0.000001)) {
   model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
-      lr = lr_set, epochs=1000,patience = 10,plot_and_evaluation_frequency = 50)
+      lr = lr_set, epochs=1000,patience = 100,plot_and_evaluation_frequency = 50)
 }
 ```
 
@@ -1180,24 +1156,26 @@ We show the dendrogram for 3 sub-groups as in Figure \ref{fig_results}.
 # Clustering
 groups =3
 colours <- c("grey","dodgerblue","red","orange")
-
 library(fastcluster)
-hc <- hclust(dist(r_c), method="ward.D") # RAM memory intensive
-clus <- cutree(hc, groups)
-p <- cbind(r_c,clus)
+p <- cbind(r_c)
 p <- plyr::count(p)
 pfreq <- p$freq
-pclus <- p$clus
-p <- p[,-c(ncol(p)-1,ncol(p))]
-p <- hclust(dist(p),method = "ward.D", members=pfreq)
+p <- p[,-c(ncol(p))]
+p_h_c <- hclust(dist(p, method = "manhattan"),method = "ward.D", members=pfreq)
+pclus <- cutree(p_h_c, groups)
+id <- 1:nrow(r_c)
+temp <- merge(cbind(id,r_c),cbind(p,pclus))
+clus <- temp$pclus[order(temp$id)]
+table(clus)
+
 par(mfrow=c(1,1))
 par(mar=c(5,5,5,5))
 library(ggtree)
 library(ggplot2)
-ggtree(p,layout="equal_angle") +
+print(ggtree(p_h_c,layout="equal_angle") +
   geom_tippoint(size=sqrt(pfreq)/2, alpha=.2, color=colours[pclus])+
-  ggtitle("Dendrogram") +
-  theme(plot.title = element_text(size = 15, face = "bold"))
+  ggtitle("D) Dendrogram") +
+  theme(plot.title = element_text(size = 15, face = "bold")))
 ```
 
 We generate the plot with the prevalence and mean risks of the sub-groups as in Figure \ref{fig_results}.
@@ -1223,37 +1201,38 @@ arrows(x0=0,x1=1,y0=mean(r_c$Baseline_risk),lty=1,length=0)
 And finally the table with the risk contributions as in Figure \ref{fig_results}.
 
 ```{r,echo=T,eval=F}
-st <- 1.5
-d <- data.frame(matrix(NA, nrow=ncol(r_c)))
-for (g in 1:groups) {
-  for (i in 1:nrow(d)) {
-    d[i,g] <- mean(r_c[clus==g,i])
-  }}
-d <- t(d)
-rownames(d) <- paste("Group",1:groups)
-colnames(d) <- names(r_c)
-par(mar=c(0,0,0,0))
-plot(0,0,type='n',xlim=c(-ncol(d)-5,0),ylim=c(-nrow(d)-1,1),axes=FALSE)
-text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
-text(-ncol(d)-5,0,"Mean (SD) risk contributions\nby sub-group",pos=4,cex=st)
-for (i in 1:groups) {
-  prev <- sum(clus==i)/length(clus)
-  risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
-  risk_obs <- mean(outcome_data[clus==i])
-  text(-ncol(d)-5,-i,paste0("Sub-group ",i,"\n","n=",sum(clus==i),", e=",
-                    sum(outcome_data[clus==i])," (prev=",round(prev*100,1),
-                    "%, risk=",round(risk*100),"%,\nexcess=",
-                    round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),
-                    "%,obs risk=", paste0(round(prop.test(sum(outcome_data[clus==i]),
-                    length(t(outcome_data)[clus==i]))$conf.int*100,2),collapse="-"),
-                    "%)"),pos=4,col=colours[i])
-}
-m <- max(d)
-for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
-  value <- paste0(format(round(as.numeric(d[i,g]),2),nsmall=2),"\n(",
-                  format(round(sd(r_c[clus==i,g]),2),nsmall=2),")")
-  text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
-}}
+  st <- 1.5
+  d <- data.frame(matrix(NA, nrow=ncol(r_c)))
+  for (g in 1:groups) {
+    for (i in 1:nrow(d)) {
+      d[i,g] <- mean(r_c[clus==g,i])
+    }}
+  d <- t(d)
+  rownames(d) <- paste("Group",1:groups)
+  colnames(d) <- names(r_c)
+  par(mar=c(0,0,0,0))
+  plot(0,0,type='n',xlim=c(-ncol(d)-5,0),ylim=c(-nrow(d)-1,1),axes=F)
+  text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
+  text(-ncol(d)-5,0,"F) Mean (SD) risk contributions\nby sub-group",pos=4,cex=st)
+  for (i in 1:groups) {
+    prev <- sum(clus==i)/length(clus)
+    risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+    risk_obs <- mean(outcome_data[clus==i])
+    text(-ncol(d)-5,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",sum(outcome_data[clus==i]),",\nPrev=",format(round(prev*100,1),nsmall=1),"%, risk=",format(round(risk*100,1),nsmall=1),"%, excess=",
+   format(round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),nsmall=1),
+   "%,\nObs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
+   paste0(format(round(prop.test(sum(outcome_data[clus==i]),
+   length(t(outcome_data)[clus==i]))$conf.int*100,1),nsmall=1),collapse="-"),
+    "%)","\nSG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
+    "SG2= ",round(mean(data$Y[data$Not_physically_active==1&data$LDL==1&data$Night_shifts==1])*100,1),"%"
+  ),pos=4,col=colours[i])
+  }
+  m <- max(d)
+  for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
+    value <- paste0(format(round(as.numeric(d[i,g]),2),nsmall=2),"\n(",
+                    format(round(sd(r_c[clus==i,g]),2),nsmall=2),")")
+    text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+  }
 ```
 
 
@@ -1275,32 +1254,9 @@ for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
 
 ## Repeated simulations
 
-**[A mistake in the data generation has been corrected, but not updated for the repeated simulations, which we need to rerun - am under the impression that we will still see an underestimation] >**
-When running the data generating process and phase 2 40 times, we can identify both combinations of component causes in 37 of the 40 simulations. The mean estimation of proportion of cases due to not *non-smoking*, *LDL* and *Night shift* was `r round(mean(c2),1)` (`r round(fit2$conf.int[1],1)`-`r round(fit2$conf.int[2],1)`)%, where the theoretical proportion would be `r round(P_Y_SLN*P_SLN/P_Y*100,1)`%.
+When running the data generating process and phase 2 for 100 times, we can identify both combinations of component causes 99 out of the 100 simulations. These results, however, indicate that we underestimate the true proportion of cases (Figure \ref{fig_repeated}). Finite sample sizes and noise signals could be two factors, which would cause an underestimation of the true proportion of cases.
 
-
-```{r,fig.height=1.5, eval=T}
-library(beeswarm)
-par(mar=c(2,0,1,0))
-beeswarm(c2,horizontal = T,axes=F,yaxs='i',pch=16,cex=.5, main="Not non-smoking, LDL and Night shift")
-axis(1)
-abline(v=P_Y_SLN*P_SLN/P_Y*100)
-```
-
-The mean estimation of proportion of cases due to *Mutation X* and *Air pollution* was `r round(mean(c1),1)` (`r round(fit1$conf.int[1],1)`-`r round(fit1$conf.int[2],1)`)%, where the theoretical proportion of cases would be `r round(P_Y_MA*P_MA/P_Y*100,1)`%.
-
-
-```{r,fig.height=1.5,eval=T}
-library(beeswarm)
-par(mar=c(2,0,1,0))
-beeswarm(c1,horizontal = T,axes=F,yaxs='i',pch=16,cex=.5, main="Mutation X and Air pollution")
-axis(1)
-abline(v=P_Y_MA*P_MA/P_Y*100)
-
-```
-
-
-These results indicate that we underestimate the true proportion of cases. Finite sample sizes and noise signals could be two factors, which would cause an underestimation of the true proportion of cases. **< [I need to rerun the simulations]**
+![100 repeated simulations showing the estimated fractions due to the two combination of causes. The results indicate that we underestimate the true excess fractions.  \label{fig_repeated}](Figures/Redo_3/Repeated.png){width=80%}
 
 \newpage
 
