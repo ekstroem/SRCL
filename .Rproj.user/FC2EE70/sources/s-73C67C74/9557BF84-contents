@@ -478,3 +478,51 @@ SRCL_5_layerwise_relevance_propagation <- function(X,model) {
   if (max(o_all-rowSums(R_X)) > 1e-6) print("WARNING: Some risk contributions do not sum to the predicted value")
   return(R_X)
 }
+
+
+#' Predict the risk based on the sum of individual effects
+#'
+#' By summing the through the risk as if each individual had been exposed to only one exposure, with the value the individual actually had.
+#'
+#' @param X The exposure data
+#' @param model The fitted the monotonistic neural network
+#' @export
+#' @examples
+#' #See the example under SRCL_0_synthetic_data
+
+SRCL_6_sum_of_individual_effects <- function(X,model) {
+# All individuals has the baseline risk
+    sum_of_individial_effects = rep(as.vector(model[[4]][1,1]),nrow(exposure_data))
+  # Loop through each exposure with the actual values by the individuals
+    for (i in 1:ncol(exposure_data)) {
+      X_temp <- as.data.frame(matrix(0,nrow = nrow(X), ncol=ncol(X)))
+      X_temp[,i] <- X[,i]
+      sum_of_individial_effects = sum_of_individial_effects +
+        rowSums(relu(t(t(as.matrix(X_temp) %*% as.matrix(model[[1]])) + as.vector(model[[2]]))))
+}
+return(sum_of_individial_effects)
+}
+
+
+#' Risk contribution matrix based on individual effects (had all other exposures been set to zero)
+#'
+#' Estimating the risk contribution for each exposure if each individual had been exposed to only one exposure, with the value the individual actually had.
+#'
+#' @param X The exposure data
+#' @param model The fitted the monotonistic neural network
+#' @export
+#' @examples
+#' #See the example under SRCL_0_synthetic_data
+
+SRCL_6_individual_effects_matrix <- function(X,model) {
+  ind_effect_matrix <- as.data.frame(matrix(0,nrow = nrow(X), ncol=ncol(X)+1)) # +1 for the baseline risk
+    # Loop through each exposure with the actual values by the individuals
+  for (i in 1:ncol(exposure_data)) {
+    X_temp <- as.data.frame(matrix(0,nrow = nrow(X), ncol=ncol(X)))
+    X_temp[,i] <- X[,i]
+    ind_effect_matrix[,i] <- rowSums(relu(t(t(as.matrix(X_temp) %*% as.matrix(model[[1]])) + as.vector(model[[2]]))))
+  }
+  # All individuals has the baseline risk
+  ind_effect_matrix[,ncol(X)+1] <- rep(as.vector(model[[4]][1,1]),nrow(exposure_data))
+  return(ind_effect_matrix)
+}
