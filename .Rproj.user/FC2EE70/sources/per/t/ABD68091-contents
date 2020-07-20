@@ -263,7 +263,14 @@ SRCL_plot_neural_network(model,names(exposure_data),5)
 ex_mat <- matrix(NA,nrow=100,ncol=3)
 
 for (run in 1) {
-setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
+
+  for (add_noise in 1:100) {
+
+  #add_noise = 0
+  hidden_nodes = 5
+  run = 1
+
+  setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
 
 
   library(SRCL)
@@ -273,12 +280,16 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   # Data simulation
   set.seed(run)
   data <- SRCL_0_synthetic_data(40000) # use 40 000 to replicate the paper
-  # Add noise
-  # data <- cbind(data,
-  #               sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),
-  #              sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),
-  #               sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T),sample(0:1,nrow(data),replace=T))
-  # colnames(data) <- c(colnames(data)[1:7],1:20)
+
+  # Add 5 variables with noise
+  var_names <-colnames(data)
+
+  if (add_noise > 0) {
+  for (x in 1:add_noise)  {
+    data <- cbind(data,sample(0:1,nrow(data),replace = TRUE))
+  }
+    colnames(data) <- c(var_names,paste0("noise_",1:c(1*add_noise)))
+    }
 
 
 
@@ -293,7 +304,10 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   outcome_data <- data[,1]
 
   # Model fit
-  model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=5)
+  #Changing number of hidden nodes
+  #for (hidden_nodes in 1:5) {
+
+  model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=hidden_nodes)
   for (lr_set in c(1e-4,1e-5,1e-6)) {
     print(paste0("Learning rate: ",lr_set))
     model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
@@ -331,23 +345,28 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   # #
   #
   #
-  # Clustering 500 -> groups
+  # # # Clustering 500 -> groups
   # data(iris)
   # iris <- round(iris[,1:4])
   # groups =3
   # library(fastcluster)
-  # hc <- hclust(dist(iris), method="ward.D")
-  # clus <- cutree(hc, groups) # Gruppering paa al data
-  # p <- cbind(iris,clus) # unikke observationer
-  # p <- plyr::count(p)
+  # p <- plyr::count(iris)
   # pfreq <- p$freq
-  # pclus <- p$clus
-  # p <- p[,-c(ncol(p)-1,ncol(p))]
-  # p <- hclust(dist(p),method = "ward.D", members=pfreq)
-  # clus_aggre <- cutree(p, groups) # Gruppering paa aggregeret data
-  # table(pclus,clus_aggre) # Resultater stemmer ikke overens...
+  # p <- p[,-ncol(p)]
+  # phc <- hclust(dist(p,method = "manhattan"),method = "ward.D", members=pfreq)
+  # clus_aggre <- cutree(phc, groups) # Gruppering paa aggregeret data
+  # id <- 1:nrow(iris)
+  # temp <- merge(cbind(id,iris),cbind(p,clus_aggre))
+  # clus_new <- temp$clus_aggre[order(temp$id)]
+  #
+  # hc <- hclust(dist(iris,method = "manhattan"), method="ward.D") #ward.D
+  # clus <- cutree(hc, groups) # Gruppering paa al data
+  # table(clus,clus_new)
+  # View(data.frame(cbind(iris,clus,clus_new)))
+  # # Resultater stemmer ikke overens...
 
-  # Clustering
+
+  # Clustering - using aggregated data - USED - but seems to fail witn noise data.
   groups =3
   library(fastcluster)
   p <- cbind(r_c)
@@ -360,10 +379,14 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   temp <- merge(cbind(id,r_c),cbind(p,pclus))
   clus <- temp$pclus[order(temp$id)]
   table(clus)
-
-  # hc <- hclust(dist(r_c, method = "manhattan"),method = "centroid")
+  # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
   # clus_test <- cutree(hc, groups) # Gruppering p? al data
   # table(clus,clus_test)
+
+  # groups =3
+  # library(fastcluster)
+  # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
+  # clus <- cutree(hc, groups)
 
   par(mfrow=c(1,1))
   par(mar=c(5,5,5,5))
@@ -378,7 +401,7 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   # append the clusters to the full risk contribution matrix
 
 
-  png(paste0("SCL_",run,".png"),unit="in",res=300,width = 7,height = 8)  ############## REMOVE
+  png(paste0("SCL_hiddennodes_",hidden_nodes,"_noise_",add_noise,"_run_",run,".png"),unit="in",res=300,width = 7,height = 8)  ############## REMOVE
   layout(matrix(c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,6,6,6), 3, 6, byrow = TRUE))
 
   # Performance
@@ -407,9 +430,9 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   # plot(prcomp(r_c),main="PCA: Proportion of variance")
   # plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=FALSE)
   par(mar=c(4,5,2,1))
-  plot(0,0,type='n',xlim=c(0,1),asp=1,ylim=c(0,1),xaxs='i',yaxs='i',
+  plot(0,0,type='n',xlim=c(0,1),ylim=c(0,max(pred)),xaxs='i',yaxs='i',
        axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,main="E) Prevalence and mean risk of sub-groups")
-  axis(1,seq(0,1,.2));axis(2,seq(0,1,.2))
+  axis(1,seq(0,1,.2));axis(2,seq(0,1,.05))
   rect(0,0,1,1)
   prev0 = 0; total = 0
   for (i in 1:groups) {
@@ -423,7 +446,7 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   #arrows(x0=0,x1=1,y0=median(r_c$Baseline_risk),lty=1,length=0)
   arrows(x0=0,x1=1,y0=mean(r_c$Baseline_risk),lty=1,length=0)
 
-  st <- 1.5
+  st <- 1
   d <- data.frame(matrix(NA, nrow=ncol(r_c)))
   for (g in 1:groups) {
     for (i in 1:nrow(d)) {
@@ -434,9 +457,9 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
   rownames(d) <- paste("Group",1:groups)
   colnames(d) <- names(r_c)
   par(mar=c(0,0,0,0))
-  plot(0,0,type='n',xlim=c(-ncol(d)-5,0),ylim=c(-nrow(d)-1,1),axes=F)
+  plot(0,0,type='n',xlim=c(-ncol(d)-6,0),ylim=c(-nrow(d)-1,1),axes=F)
   text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
-  text(-ncol(d)-5,0,"F) Mean (SD) risk contributions\nby sub-group",pos=4,cex=st)
+  text(-ncol(d)-6,0,"F) Mean risk contributions by sub-group (SD)\n[mean risk contribution if other exposures are set to 0]",pos=4,cex=st)
   #text(-ncol(d)-2,c(-1):c(-nrow(d)),rownames(d),col=colours[1:groups],cex=st)
   #par(mfrow=c(1,1))
   for (i in 1:groups) {
@@ -444,28 +467,36 @@ setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Re
     #  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
     risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
     risk_obs <- mean(outcome_data[clus==i])
-    text(-ncol(d)-5,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",sum(outcome_data[clus==i]),",\nPrev=",format(round(prev*100,1),nsmall=1),"%, risk=",format(round(risk*100,1),nsmall=1),"%, excess=",
+    text(-ncol(d)-6,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",sum(outcome_data[clus==i]),",Prev=",format(round(prev*100,1),nsmall=1),"%, risk=",format(round(risk*100,1),nsmall=1),"%,\nexcess=",
                               #round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
                               format(round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),nsmall=1),
-                              "%,\nObs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
+                              "%, Obs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
                               #                     "round(risk_obs*100),
                               paste0(format(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,1),nsmall=1),collapse="-"),
-                              "%)",
-                              "\nSG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
-                              "SG2= ",round(mean(data$Y[data$Not_physically_active==1&data$LDL==1&data$Night_shifts==1])*100,1),"%"
-                              ),pos=4,col=colours[i])
+                              "%)\n",
+                              "Risk based on the sum of individual effects =",
+                              format(round(mean(SRCL_6_sum_of_individual_effects(exposure_data,model)[clus==i])*100,1),nsmall=1),
+                              "%"),pos=4,col=colours[i])
     ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
   }
   m <- max(d)
+  ind_effect_matrix <- SRCL_6_individual_effects_matrix(exposure_data,model)
   for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
-    value <- paste0(format(round(as.numeric(d[i,g]),2),nsmall=2),"\n(",
-                    format(round(sd(r_c[clus==i,g]),2),nsmall=2),")")
+    value <- paste0(format(round(as.numeric(d[i,g])*100,1),nsmall=),"%\n(",
+                    format(round(sd(r_c[clus==i,g])*100,1),nsmall=1),"%)\n[",
+                    format(round(mean(ind_effect_matrix[clus==i,g]*100),1),nsmall=1),"%]"
+                    )
     #  value <- paste0(format(round(as.numeric(quantile(d[i,g],c(0.25,0.75))),2),nsmall=2),collapse = "-")
     text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
   }}
+  mtext(paste0("SG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
+  "SG2= ",round(mean(data$Y[data$Not_physically_active==1&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)
+
   dev.off()
 
   write.csv(ex_mat,"Excess.csv")
+} # Hidden nodes simulation and other sensitivity analyses
+
 }
 
 setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo_3")
@@ -492,7 +523,7 @@ arrows(x0=1.3,x1=2.7,y0=mean(ex_mat[,2]),length=0,lwd=1,col="red")
 arrows(x0=1.5,y0=confint(lm(ex_mat[,2]~1))[1],y1=confint(lm(ex_mat[,2]~1))[2],length=0,lwd=1,col="red")
 beeswarm(ex_mat,pch=16,add=T)
 text(1.6,2.30007,"Expected fraction",col="dodgerblue",pos=3,cex=.8)
-text(1.6,mean(ex_mat[,1]),"Mean measured\nexpected fraction\n(vertical 95% CI)",col="dodgerblue",pos=1,cex=.8)
+text(1.6,mean(ex_mat[,1]),"Mean measured\nfraction\n(vertical 95% CI)",col="dodgerblue",pos=1,cex=.8)
 dev.off()
 
 
@@ -695,3 +726,247 @@ dev.off()
   }}
   dev.off()
 
+
+  ############ C++ (No monotonicity...) #################
+
+  ex_mat <- matrix(NA,nrow=100,ncol=3)
+
+  for (run in 1:10) {
+
+#    for (add_noise in seq(0,50,5)) {
+
+      add_noise = 0
+      hidden_nodes = 5
+ #     run = 1
+
+      setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
+
+
+      library(SRCL)
+      library(graphics)
+      colours <- c("grey","dodgerblue","red","orange","green")
+
+      # Data simulation
+      set.seed(run)
+      data <- SRCL_0_synthetic_data(40000) # use 40 000 to replicate the paper
+
+      # Add 5 variables with noise
+      var_names <-colnames(data)
+
+      if (add_noise > 0) {
+        for (x in 1:add_noise)  {
+          data <- cbind(data,sample(0:1,nrow(data),replace = TRUE))
+        }
+        colnames(data) <- c(var_names,paste0("noise_",1:c(1*add_noise)))
+      }
+
+
+
+      # Code data monotonisticly
+      summary(lm(Y~.,data))
+      # We choose to recode Physically_active to not_Physically_active
+      #data$Physically_active <- 1 - data$Physically_active
+      #names(data)[2] <- "Not_physically_active"
+
+      summary(lm(Y~.,data))
+      exposure_data <- data[,-1]
+      for (i in 1:ncol(exposure_data)) {exposure_data[,i] <- factor(exposure_data[,i])}
+      library(mltools)
+      library(data.table)
+      exposure_data <- one_hot(as.data.table(exposure_data))
+      outcome_data <- data[,1]
+
+      # Model fit
+      #Changing number of hidden nodes
+      #for (hidden_nodes in 1:5) {
+
+      model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=hidden_nodes)
+      model[[4]] <- as.matrix(mean(outcome_data))
+      for (lr_set in c(1e-4,1e-5,1e-6)) {
+        print(paste0("Learning rate: ",lr_set))
+        model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
+                                             lr = lr_set, epochs=2000,patience = 100,plot_and_evaluation_frequency = 50)
+      }
+
+      # Risk contributions
+      r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
+      sum(duplicated(r_c)==FALSE)
+
+      # # Clustering
+      # groups =3
+      #   library(fastcluster)
+      # hc <- hclust(dist(r_c), method="ward.D2") # RAM memory intensive
+      # clus <- cutree(hc, groups)
+      # p <- cbind(r_c,clus)
+      # p <- plyr::count(p)
+      # pfreq <- p$freq
+      # pclus <- p$clus
+      # p <- p[,-c(ncol(p)-1,ncol(p))]
+      # p <- hclust(dist(p),method = "ward.D2", members=pfreq)
+      #
+      # #
+      # library(WeightedCluster)
+      # hc <- hclust(dist(r_c), method="centroid") # RAM memory intensive
+      # clus <- cutree(hc, groups)
+      # p <- cbind(r_c,clus)
+      # p <- plyr::count(p)
+      # pfreq <- p$freq
+      # pclus <- p$clus
+      # p <- p[,-c(ncol(p)-1,ncol(p))]
+      # p <- hclust(dist(p),method = "centroid", members=pfreq)
+      # ppclus <- cutree(p, groups)
+      # cbind(pclus,ppclus)
+      # #
+      #
+      #
+      # # # Clustering 500 -> groups
+      # data(iris)
+      # iris <- round(iris[,1:4])
+      # groups =3
+      # library(fastcluster)
+      # p <- plyr::count(iris)
+      # pfreq <- p$freq
+      # p <- p[,-ncol(p)]
+      # phc <- hclust(dist(p,method = "manhattan"),method = "ward.D", members=pfreq)
+      # clus_aggre <- cutree(phc, groups) # Gruppering paa aggregeret data
+      # id <- 1:nrow(iris)
+      # temp <- merge(cbind(id,iris),cbind(p,clus_aggre))
+      # clus_new <- temp$clus_aggre[order(temp$id)]
+      #
+      # hc <- hclust(dist(iris,method = "manhattan"), method="ward.D") #ward.D
+      # clus <- cutree(hc, groups) # Gruppering paa al data
+      # table(clus,clus_new)
+      # View(data.frame(cbind(iris,clus,clus_new)))
+      # # Resultater stemmer ikke overens...
+
+
+      # Clustering - using aggregated data - USED - but seems to fail witn noise data.
+      groups =3
+      library(fastcluster)
+      p <- cbind(r_c)
+      p <- plyr::count(p)
+      pfreq <- p$freq
+      p <- p[,-c(ncol(p))]
+      p_h_c <- hclust(dist(p, method = "manhattan"),method = "ward.D", members=pfreq)
+      pclus <- cutree(p_h_c, groups)
+      id <- 1:nrow(r_c)
+      temp <- merge(cbind(id,r_c),cbind(p,pclus))
+      clus <- temp$pclus[order(temp$id)]
+      table(clus)
+      # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
+      # clus_test <- cutree(hc, groups) # Gruppering p? al data
+      # table(clus,clus_test)
+
+      # groups =3
+      # library(fastcluster)
+      # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
+      # clus <- cutree(hc, groups)
+
+      par(mfrow=c(1,1))
+      par(mar=c(5,5,5,5))
+      library(ggtree)
+      library(ggplot2)
+      png("dendrogram.png",units = 'in',res=300,height = 4,width = 4)
+      print(ggtree(p_h_c,layout="equal_angle") +
+              geom_tippoint(size=sqrt(pfreq)/2, alpha=.2, color=colours[pclus])+
+              ggtitle("D) Dendrogram") +
+              theme(plot.title = element_text(size = 15, face = "bold")))
+      dev.off()
+      # append the clusters to the full risk contribution matrix
+
+
+      png(paste0("SCL_hiddennodes_",hidden_nodes,"_noise_",add_noise,"_run_",run,".png"),unit="in",res=300,width = 7,height = 8)  ############## REMOVE
+      layout(matrix(c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,6,6,6), 3, 6, byrow = TRUE))
+
+      # Performance
+      par(mar=c(5,5,2,0))
+      plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
+           xlab="Epochs",main="A) Performance")
+
+      # Model visualisation
+      par(mar=c(0,0,0,0))
+      SRCL_3_plot_neural_network(model,names(exposure_data),5/max(model[[1]]))
+      mtext("B)",side=3, line=2,adj = -.0001)
+
+      # AUC
+      library(pROC)
+      par(mar=c(5,5,2,0))
+      pred <- SRCL_4_predict_risks(exposure_data,model)
+      plot(roc(outcome_data,pred),print.auc=TRUE,main="C) Accuracy")
+
+      # Plot results
+      library(robustbase)
+      library(imager)
+      im <- load.image("dendrogram.png")
+      par(mar=c(0,0,0,0))
+      plot(im,axes=F)
+      # par(mar=c(4,5,3,0))
+      # plot(prcomp(r_c),main="PCA: Proportion of variance")
+      # plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=FALSE)
+      par(mar=c(4,5,2,1))
+      plot(0,0,type='n',xlim=c(0,1),ylim=c(0,max(pred)),xaxs='i',yaxs='i',
+           axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,main="E) Prevalence and mean risk of sub-groups")
+      axis(1,seq(0,1,.2));axis(2,seq(0,1,.05))
+      rect(0,0,1,1)
+      prev0 = 0; total = 0
+      for (i in 1:groups) {
+        prev <- sum(clus==i)/length(clus)
+        #  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
+        risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+        rect(xleft = prev0,ybottom = 0,xright = prev+prev0,ytop = risk, col=colours[i])
+        prev0 = prev + prev0
+        total = total + risk * prev
+      }
+      #arrows(x0=0,x1=1,y0=median(r_c$Baseline_risk),lty=1,length=0)
+      arrows(x0=0,x1=1,y0=mean(r_c$Baseline_risk),lty=1,length=0)
+
+      st <- 1
+      d <- data.frame(matrix(NA, nrow=ncol(r_c)))
+      for (g in 1:groups) {
+        for (i in 1:nrow(d)) {
+          #    d[i,g] <- median(r_c[clus==g,i])
+          d[i,g] <- mean(r_c[clus==g,i])
+        }}
+      d <- t(d)
+      rownames(d) <- paste("Group",1:groups)
+      colnames(d) <- names(r_c)
+      par(mar=c(0,0,0,0))
+      plot(0,0,type='n',xlim=c(-ncol(d)-6,0),ylim=c(-nrow(d)-1,1),axes=F)
+      text(c(-ncol(d)):c(-1),0,rev(colnames(d)),srt=25,cex=st)
+      text(-ncol(d)-6,0,"F) Mean risk contributions by sub-group (SD)\n[mean risk contribution if other exposures are set to 0]",pos=4,cex=st)
+      #text(-ncol(d)-2,c(-1):c(-nrow(d)),rownames(d),col=colours[1:groups],cex=st)
+      #par(mfrow=c(1,1))
+      for (i in 1:groups) {
+        prev <- sum(clus==i)/length(clus)
+        #  risk <- sum(colMedians(as.matrix(r_c[clus==i,])))
+        risk <- sum(colMeans(as.matrix(r_c[clus==i,])))
+        risk_obs <- mean(outcome_data[clus==i])
+        text(-ncol(d)-6,-i,paste0("Sub-group ",i,": ","n=",sum(clus==i),", e=",sum(outcome_data[clus==i]),",Prev=",format(round(prev*100,1),nsmall=1),"%, risk=",format(round(risk*100,1),nsmall=1),"%,\nexcess=",
+                                  #round(prev*(risk-median(r_c$Baseline_risk))/total*100,1),
+                                  format(round(prev*(risk-mean(r_c$Baseline_risk))/total*100,1),nsmall=1),
+                                  "%, Obs risk=",format(round(risk_obs*100,1),nsmall=1),"% (",
+                                  #                     "round(risk_obs*100),
+                                  paste0(format(round(prop.test(sum(outcome_data[clus==i]),length(t(outcome_data)[clus==i]))$conf.int*100,1),nsmall=1),collapse="-"),
+                                  "%)\n",
+                                  "Risk based on the sum of individual effects =",
+                                  format(round(mean(SRCL_6_sum_of_individual_effects(exposure_data,model)[clus==i])*100,1),nsmall=1),
+                                  "%"),pos=4,col=colours[i])
+        ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
+      }
+      m <- max(d)
+      ind_effect_matrix <- SRCL_6_individual_effects_matrix(exposure_data,model)
+      for(g in 1:ncol(d)) { for (i in 1:nrow(d)){
+        value <- paste0(format(round(as.numeric(d[i,g])*100,1),nsmall=),"%\n(",
+                        format(round(sd(r_c[clus==i,g])*100,1),nsmall=1),"%)\n[",
+                        format(round(mean(ind_effect_matrix[clus==i,g]*100),1),nsmall=1),"%]"
+        )
+        #  value <- paste0(format(round(as.numeric(quantile(d[i,g],c(0.25,0.75))),2),nsmall=2),collapse = "-")
+        text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+      }}
+      mtext(paste0("SG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
+                   "SG2= ",round(mean(data$Y[data$Not_physically_active==1&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)
+
+      dev.off()
+
+      write.csv(ex_mat,"Excess.csv")
+    } # Hidden nodes simulation and other sensitivity analyses

@@ -67,7 +67,8 @@ Rcpp::List SRCL_cpp_train_network_relu(
      const arma::mat & B2_input,
      const arma::vec & IPCW,
 		 double lr=0.01,
-		 double maxepochs = 100
+		 double maxepochs = 100,
+     double baseline_reward = 0.00001
 		 ) {
 
   int nsamples = y.size();
@@ -139,7 +140,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
 }
 
       B1 = rcpprelu_neg(B1 - IPCW(row) * lr * E_outO * (netO_outH % (h>0)));
-      B2 = rcpprelu(B2 - IPCW(row) * lr / 10 *  E_outO);
+      B2 = rcpprelu(B2 - IPCW(row) * lr / 10 *  E_outO + lr * baseline_reward);
 
 
     } // Row

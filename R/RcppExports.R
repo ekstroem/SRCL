@@ -42,8 +42,8 @@ rcpprelu_neg <- function(x) {
 #' @author    Andreas Rieckmann, Piotr Dworzynski, Claus Ekstrøm
 #'
 #' @export
-SRCL_cpp_train_network_relu <- function(x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr = 0.01, maxepochs = 100) {
-    .Call(`_SRCL_SRCL_cpp_train_network_relu`, x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr, maxepochs)
+SRCL_cpp_train_network_relu <- function(x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr = 0.01, maxepochs = 100, baseline_reward = 0.00001) {
+    .Call(`_SRCL_SRCL_cpp_train_network_relu`, x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr, maxepochs, baseline_reward)
 }
 
 #' Function used as part of other functions
