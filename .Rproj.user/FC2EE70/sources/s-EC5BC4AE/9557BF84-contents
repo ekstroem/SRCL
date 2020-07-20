@@ -227,7 +227,7 @@ SRCL_0_synthetic_data <- function(n) {
 #'
 
 
-SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
+SRCL_1_initiate_neural_network <- function(inputs,output,hidden,confounder=FALSE) {
   # Weight initiation
   w1 <- abs(random(inputs,hidden,0.01))
   b1 <- -abs(random(1,hidden,0.01))
@@ -238,8 +238,10 @@ SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
   performance <- NA
   best_epoch <- NA
   epochs <- NA
+  b2 <- as.matrix(mean(output))
   if (confounder == FALSE)   return(list(w1,b1,w2,b2,performance,epochs,best_epoch))
   if (confounder == TRUE)   return(list(w1,b1,w2,b2,c2,performance,epochs,best_epoch))
+
 }
 
 
@@ -288,25 +290,29 @@ SRCL_1_initiate_neural_network <- function(inputs,hidden,confounder=FALSE) {
 #' #See the example under SRCL_0_synthetic_data
 
 
-SRCL_2_train_neural_network <- function(X, Y, model, lr = 0.01,
+SRCL_2_train_neural_network <- function(X_train, Y_train, X_test, Y_test, model, lr = 0.01,
                             epochs = 50000, patience = 500,
                             plot_and_evaluation_frequency = 50, IPCW = NA) {
-
-  if (is.na(IPCW)) IPCW <- rep(1,nrow(X))
+  if (is.na(IPCW)) IPCW <- rep(1,nrow(X_train))
   performance = model$train_performance
+  performance_test = model$train_performance
   par(mfrow=c(1,1));par(mar=c(3,5,3,1))
     for(rounds in 1:ceiling(c(epochs/plot_and_evaluation_frequency))) {
-      model <- SRCL_cpp_train_network_relu(x=as.matrix(X),y=as.matrix(Y),testx=as.matrix(X),testy=as.matrix(Y),
+      model <- SRCL_cpp_train_network_relu(x=as.matrix(X_train),y=as.matrix(Y_train),testx=as.matrix(X_test),testy=as.matrix(Y_test),
               lr = lr, maxepochs  = plot_and_evaluation_frequency, W1_input = model[[1]],B1_input = model[[2]],
               W2_input = model[[3]],B2_input = model[[4]], IPCW = IPCW)
       performance <- c(performance,model$train_performance)
+      performance_test <- c(performance_test,model$test_performance)
       plot(performance, type='l',yaxs='i', ylab="Mean squared error",
-           xlab="Epochs",main="Performance")
+           xlab="Epochs",main="Performance on training data set")
+      plot(performance_test, type='l',yaxs='i', ylab="Mean squared error",
+           xlab="Epochs",main="Performance on test data set")
       if(length(performance)-which.min(performance)>patience) break
     }
   model$train_performance <- c(performance)
-  model$test_performance <- NA
+  model$test_performance <-  c(performance_test)
   return(model)
+  par(mfrow=c(1,1))
   }
 
 

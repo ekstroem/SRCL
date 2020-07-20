@@ -88,7 +88,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
   arma::mat B2(1, 1, arma::fill::zeros);
   B2 = B2_input;
 
-  // W1 for the test data parameter qualification
+  // W1 for the test data qualification
   arma::mat W1_previous_step(nfeatures, hidden, arma::fill::zeros);  // Filled with standard normals
   W1_previous_step = W1_input;
   arma::mat W1_temp(nfeatures, hidden, arma::fill::zeros);  // Filled with standard normals
@@ -124,7 +124,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
     // Step 2: Implement forward propagation to get hW,b(x) for any x.
 
-    //W1_previous_step = W1;
+    W1_previous_step = W1;
 
     for (arma::uword rowidx=0; rowidx<x.n_rows; rowidx++) {
       // This is the row we're working on right now
@@ -158,13 +158,12 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
     } // Row
 
-
-    // Parameter qualification based on test data performance
+    // Weight qualification based on test data performance
       for (size_t g=0; g<W1.n_rows; g++) {
          for (size_t j=0; j<W1.n_cols; j++) {
         W1_temp = W1_previous_step;
         W1_temp(g,j) = W1(g,j);
-        arma::mat tmp = testx * W1_previous_step;
+        arma::mat tmp = x * W1_previous_step;
         double mean_val_perform_prev = 0.5*accu(square(testy - (rcpprelu(rcpprelu(tmp.each_row() + B1) * W2 + B2(0,0)) )))/nsamples;
         tmp = testx * W1_temp;
         double mean_val_perform_next = 0.5*accu(square(testy - (rcpprelu(rcpprelu(tmp.each_row() + B1) * W2 + B2(0,0)) )))/nsamples;
@@ -174,7 +173,6 @@ Rcpp::List SRCL_cpp_train_network_relu(
         }
       }
     W1 = W1_next_step;
-    W1_previous_step = W1_next_step;
 
     // Compute performance
     // This is an approximation since it should be rerun on the full data with the
@@ -186,11 +184,12 @@ Rcpp::List SRCL_cpp_train_network_relu(
     tmp = testx * W1;
     double mean_val_perform = 0.5*accu(square(testy - (rcpprelu(rcpprelu(tmp.each_row() + B1) * W2 + B2(0,0)) )))/nsamples;
 
-    trainperf(epoch) = mean_perform;
     testperf(epoch) = mean_val_perform;
+    trainperf(epoch) = mean_perform;
+
 
  if (epoch % 10 == 0) {
-      Rprintf("%d epochs: Train performance of %f. Test performance of %f. Baseline risk estimated to %f.\n",epoch, mean_perform, mean_val_perform, B2(0,0));
+      Rprintf("%d epochs: Test performance of %f. Baseline risk estimated to %f.\n",epoch, mean_perform, B2(0,0));
    }
 
 

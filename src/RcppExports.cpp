@@ -29,8 +29,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // SRCL_cpp_train_network_relu
-Rcpp::List SRCL_cpp_train_network_relu(const arma::mat& x, const arma::vec& y, const arma::mat& testx, const arma::vec& testy, const arma::mat& W1_input, const arma::mat& B1_input, const arma::mat& W2_input, const arma::mat& B2_input, const arma::vec& IPCW, double lr, double maxepochs, double baseline_reward);
-RcppExport SEXP _SRCL_SRCL_cpp_train_network_relu(SEXP xSEXP, SEXP ySEXP, SEXP testxSEXP, SEXP testySEXP, SEXP W1_inputSEXP, SEXP B1_inputSEXP, SEXP W2_inputSEXP, SEXP B2_inputSEXP, SEXP IPCWSEXP, SEXP lrSEXP, SEXP maxepochsSEXP, SEXP baseline_rewardSEXP) {
+Rcpp::List SRCL_cpp_train_network_relu(const arma::mat& x, const arma::vec& y, const arma::mat& testx, const arma::vec& testy, const arma::mat& W1_input, const arma::mat& B1_input, const arma::mat& W2_input, const arma::mat& B2_input, const arma::vec& IPCW, double lr, double maxepochs, double baseline_risk_reward);
+RcppExport SEXP _SRCL_SRCL_cpp_train_network_relu(SEXP xSEXP, SEXP ySEXP, SEXP testxSEXP, SEXP testySEXP, SEXP W1_inputSEXP, SEXP B1_inputSEXP, SEXP W2_inputSEXP, SEXP B2_inputSEXP, SEXP IPCWSEXP, SEXP lrSEXP, SEXP maxepochsSEXP, SEXP baseline_risk_rewardSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -45,8 +45,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type IPCW(IPCWSEXP);
     Rcpp::traits::input_parameter< double >::type lr(lrSEXP);
     Rcpp::traits::input_parameter< double >::type maxepochs(maxepochsSEXP);
-    Rcpp::traits::input_parameter< double >::type baseline_reward(baseline_rewardSEXP);
-    rcpp_result_gen = Rcpp::wrap(SRCL_cpp_train_network_relu(x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr, maxepochs, baseline_reward));
+    Rcpp::traits::input_parameter< double >::type baseline_risk_reward(baseline_risk_rewardSEXP);
+    rcpp_result_gen = Rcpp::wrap(SRCL_cpp_train_network_relu(x, y, testx, testy, W1_input, B1_input, W2_input, B2_input, IPCW, lr, maxepochs, baseline_risk_reward));
     return rcpp_result_gen;
 END_RCPP
 }

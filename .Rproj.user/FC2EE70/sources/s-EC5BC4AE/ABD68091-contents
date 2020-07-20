@@ -737,7 +737,7 @@ dev.off()
 
       add_noise = 0
       hidden_nodes = 5
- #     run = 1
+      run = 1
 
       setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
 
@@ -780,12 +780,18 @@ dev.off()
       #Changing number of hidden nodes
       #for (hidden_nodes in 1:5) {
 
-      model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data),hidden=hidden_nodes)
-      model[[4]] <- as.matrix(mean(outcome_data))
+      select <- sample(1:nrow(exposure_data),nrow(exposure_data)/2)
+      exposure_data_train <- exposure_data[select,]
+      exposure_data_test <- exposure_data[-select,]
+      outcome_data_train <- outcome_data[select]
+      outcome_data_test <- outcome_data[-select]
+
+      model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data), output = outcome_data,hidden=hidden_nodes)
       for (lr_set in c(1e-4,1e-5,1e-6)) {
-        print(paste0("Learning rate: ",lr_set))
-        model <- SRCL_2_train_neural_network(exposure_data,outcome_data,model,
-                                             lr = lr_set, epochs=2000,patience = 100,plot_and_evaluation_frequency = 50)
+        print(paste0("############################## Learning rate: ",lr_set," ##############################"))
+        model <- SRCL_2_train_neural_network(X_train = exposure_data_train, Y_train = outcome_data_train,
+                                             X_test = exposure_data_test, Y_test = outcome_data_test,
+                                             model,lr = lr_set, epochs=2000,patience = 100,plot_and_evaluation_frequency = 50)
       }
 
       # Risk contributions
@@ -861,6 +867,7 @@ dev.off()
       # library(fastcluster)
       # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
       # clus <- cutree(hc, groups)
+
 
       par(mfrow=c(1,1))
       par(mar=c(5,5,5,5))
