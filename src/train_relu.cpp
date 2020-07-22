@@ -124,8 +124,6 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
     // Step 2: Implement forward propagation to get hW,b(x) for any x.
 
-    //W1_previous_step = W1;
-
     for (arma::uword rowidx=0; rowidx<x.n_rows; rowidx++) {
       // This is the row we're working on right now
       row = shuffle(rowidx);
@@ -149,7 +147,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {
-        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g)); // LR * 10 before
+        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g));
 }
 
       B1 = rcpprelu_neg(B1 - IPCW(row) * lr * E_outO * (netO_outH % (h>0)));
@@ -158,7 +156,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
     } // Row
 
-
+/*
     // Parameter qualification based on test data performance
       for (size_t g=0; g<W1.n_rows; g++) {
          for (size_t j=0; j<W1.n_cols; j++) {
@@ -171,11 +169,15 @@ Rcpp::List SRCL_cpp_train_network_relu(
           if (mean_val_perform_next <= mean_val_perform_prev) {
             W1_next_step(g,j) = W1(g,j);
           }
+          if (mean_val_perform_next > mean_val_perform_prev) {
+            W1_next_step(g,j) = W1_previous_step(g,j) * 0.9;
+          }
         }
       }
     W1 = W1_next_step;
     W1_previous_step = W1_next_step;
-
+*/
+    
     // Compute performance
     // This is an approximation since it should be rerun on the full data with the
     // new weights.  But we have an update of a single line

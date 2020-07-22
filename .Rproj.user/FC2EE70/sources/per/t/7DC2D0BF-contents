@@ -1,0 +1,742 @@
+results = data.frame(exp=NA, est=NA)
+for (run in 1:500) {
+print(run)
+  
+
+n = 1000
+U = sample(1:0,n,replace=T)
+Z=NA
+for (i in 1:n) {
+  Z[i] = sample(1:0,1,prob=c(.4+.2*(U[i] == 1),1-(.4+.2*(U[i] == 1))),replace=T)
+}
+A=NA
+for (i in 1:n) {
+  A[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.15*(Z[i] == 1),1-(.2+.2*(U[i]==1)+.15*(Z[i] == 1))),replace=T)
+}
+Y=NA
+for (i in 1:n) {
+  Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.4*(A[i] == 1),1-(.2+.2*(U[i]==1)+.4*(A[i] == 1))),replace=T)
+}
+summary(lm(Y~Z)) # biased
+summary(lm(Y~Z+U)) # total effect
+summary(lm(Y~A+Z+U)) # direct and indirect
+# We want to estimate the total of 0.06
+results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+
+library(table1)
+fit <- lm(Y~Z+A)
+new_data <- data.frame(Y=c(Y,Y,Y,Y),A=c(A,A,A,A),A_=c(rep(0,n),rep(1,n),rep(0,n),rep(1,n)),Z=c(Z,Z,Z,Z),Z_=c(rep(0,n),rep(0,n),rep(1,n),rep(1,n)))
+table1(~.|Z,data=new_data)
+
+new_data$p_ <- predict(fit, newdata = data.frame(Y=new_data$Y,A=new_data$A,Z=new_data$Z_), type="response")
+new_data$p <- predict(fit, newdata = data.frame(Y=new_data$Y,A=new_data$A_,Z=new_data$Z), type="response")
+new_data$w <- ifelse(new_data$Y == 1, new_data$p_ / new_data$p, (1-new_data$p_) / (1-new_data$p))
+
+lm(Y~ Z_ + Z, weights = new_data$w, data = new_data)
+
+
+results[run,2] <- coef(lm(Y~ Z, weights = new_data$w, data = new_data))[2]
+plot(results)
+abline(0,1)
+}
+
+plot(results)
+
+
+
+### Second try
+results = data.frame(exp=NA, est=NA)
+for (run in 1:500) {
+  print(run)
+  
+  n = 10000
+  U = sample(1:0,n,replace=T)
+  Z = NA
+  for (i in 1:n) {
+    Z[i] = sample(1:0,1,prob=c(.4+.2*(U[i] == 1),1-(.4+.2*(U[i] == 1))),replace=T)
+  }
+  A= NA
+  for (i in 1:n) {
+    A[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.15*(Z[i] == 1),1-(.2+.2*(U[i]==1)+.15*(Z[i] == 1))),replace=T)
+  }
+  Y=NA
+  for (i in 1:n) {
+    Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.2*(Z[i] == 1)+.4*(A[i] == 1),1-(.2+.2*(U[i]==1)+.2*(Z[i] == 1)+.4*(A[i] == 1))),replace=T)
+  }
+  summary(lm(Y~Z)) # biased
+  summary(lm(Y~Z+U)) # total effect
+  summary(lm(Y~A+Z+U)) # direct and indirect
+  # We want to estimate the total of 0.25
+  results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+  
+  fit <- lm(Y~Z+A)
+  p <- predict(fit, newdata = data.frame(Y=Y,A=0,Z=Z), type="response")
+  w <- ifelse(Y == 1, 1 / p, 1 / (1-p))
+  glm(Y~ Z + A)
+  glm(Y~ Z + A, weights = w) # no effect conditioned on A?????
+  glm(Y~ Z, weights = w)
+  
+  results[run,2] <- coef(  lm(Y~ Z, weights = w))[2]
+  plot(results)
+  abline(0,1)
+}
+
+plot(results)
+
+
+
+
+
+
+################################################
+n = 100000
+U = sample(1:0,n,replace=T)
+A=NA
+for (i in 1:n) {
+  A[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1),1-(.2+.2*(U[i]==1))),replace=T)
+}
+Y=NA
+for (i in 1:n) {
+  Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.15*(A[i] == 1),1-(.2+.2*(U[i]==1)+.15*(A[i] == 1))),replace=T)
+}
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+# We want to estimate the total of 0.06
+#results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+
+Z = sample(1:0,n,replace=T)
+
+w = rep(1,n)
+w[Z==1 & A == 1] <- 100
+w[Z==1 & A == 0] <- .01
+mean(w)
+w = w / mean(w)
+summary(lm(A~Z, weights = w))
+(ZA <- coef(lm(A~Z, weights = w))[2])
+(ZY <- coef(lm(Y~Z, weights = w))[2])
+ZY/ZA
+
+
+
+
+################################
+
+est = NA
+alt = NA
+for (run in 1:100) {
+print(paste("Run:",run))
+n = 500
+U = sample(1:0,n,replace=T)
+A=NA
+for (i in 1:n) {
+  A[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+}
+A2=NA
+for (i in 1:n) {
+  A2[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+}
+#A3=NA
+#for (i in 1:n) {
+#  A3[i] = sample(1:0,1,prob=c(.3+.1*(U[i]==1),1-(.3+.1*(U[i]==1))),replace=T)
+#}
+
+Y=NA
+for (i in 1:n) {
+  Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.05*(A[i] == 1),1-(.2+.2*(U[i]==1)+.05*(A[i] == 1))),replace=T)
+}
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+# We want to estimate the total of 0.06
+#results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+
+summary(lm(A~A2)) # gives an idea of the chances
+
+Z = sample(1:0,n,replace=T)
+#Z_original <- Z
+#summary(lm(A~Z_original))
+#summary(lm(A2~Z_original))
+#summary(lm(A3~Z_original))
+#(ZA <- coef(lm(A~Z_original))[2])
+#(ZY <- coef(lm(Y~Z_original))[2])
+#ZY/ZA # supposed to be .05
+
+g = 100
+while (g >0) {
+print (g)
+g = 0
+for (i in 1:n) {
+#if (i / 10 == i %/%10) print(i)
+A_org <- (summary(lm(A~Z))$coefficients[2,4] )
+A2_org <- (summary(lm(A2~Z))$coefficients[2,4] )
+#A3_org <- (summary(lm(A3~Z))$coefficients[2,4] )
+
+ZYA <-  (summary(lm(Y~Z+A))$coefficients[2,4] )
+
+Z_ = Z
+Z_[i] = 1- Z_[i]
+
+A_org_ <- (summary(lm(A~Z_))$coefficients[2,4] )
+A2_org_ <- (summary(lm(A2~Z_))$coefficients[2,4] )
+#A3_org_ <- (summary(lm(A3~Z_))$coefficients[2,4] )
+
+ZYA_ <-  (summary(lm(Y~Z+A))$coefficients[2,4] )
+
+#if (A_org_ < A_org & ZYA_ >= min(0.75,ZYA) & A2_org_ >= min(0.75,A2_org) & A3_org_ >= min(0.75,A3_org)) {
+  if (A_org_ < max(A_org,0.01) & ZYA_ >= min(0.75,ZYA) & A2_org_ >= min(0.75,A2_org) ) {
+  Z = Z_
+  g = g + 1
+#  print("updated")
+}
+}
+if (A_org_ < 0.01 & ZYA_ >= 0.75 & A2_org_ >= (0.75) ) {
+  break
+}
+}
+
+summary(lm(A~Z))
+summary(lm(A2~Z))
+#summary(lm(A3~Z))
+
+par(mfrow=c(2,1))
+
+(ZA <- coef(lm(A~Z))[2])
+(ZY <- coef(lm(Y~Z))[2])
+ZY/ZA
+est[run] <- ZY/ZA
+hist(est,breaks = 50)
+abline(v=mean(est),lwd=5,col="dodgerblue")
+abline(v=0.05,lwd=5,col="red")
+if (run > 1) print(t.test(est,m=0.05))
+
+alt[run] <- coef(lm(Y~A+A2))[2]
+hist(alt,breaks = 50)
+abline(v=mean(alt),lwd=5,col="dodgerblue")
+abline(v=0.05,lwd=5,col="red")
+if (run > 1) print(t.test(alt,m=0.05))
+
+}
+
+
+
+
+####### One example - many estimates #########
+
+est = NA
+alt = NA
+  n = 500
+  U = sample(1:0,n,replace=T)
+  A=NA
+  for (i in 1:n) {
+    A[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+  }
+  A2=NA
+  for (i in 1:n) {
+    A2[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+  }
+  A3=NA
+  for (i in 1:n) {
+    A3[i] = sample(1:0,1,prob=c(.3+.1*(U[i]==1),1-(.3+.1*(U[i]==1))),replace=T)
+  }
+  
+  Y=NA
+  for (i in 1:n) {
+    Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.05*(A[i] == 1),1-(.2+.2*(U[i]==1)+.05*(A[i] == 1))),replace=T)
+  }
+  summary(lm(Y~A))
+  summary(lm(Y~A+U)) # direct and indirect
+  true <- coef(lm(Y~A+U))[2] 
+  # We want to estimate the total of 0.06
+  #results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+  
+  summary(lm(A~A2)) # gives an idea of the chances
+
+  
+for (run in 1:100) {
+  print(paste("Run:",run))
+
+  Z = sample(1:0,n,replace=T)
+  #Z_original <- Z
+  #summary(lm(A~Z_original))
+  #summary(lm(A2~Z_original))
+  #summary(lm(A3~Z_original))
+  #(ZA <- coef(lm(A~Z_original))[2])
+  #(ZY <- coef(lm(Y~Z_original))[2])
+  #ZY/ZA # supposed to be .05
+  
+  g = 100
+  while (g >0) {
+    print (g)
+    g = 0
+    for (i in 1:n) {
+      #if (i / 10 == i %/%10) print(i)
+      A_org <- (summary(lm(A~Z))$coefficients[2,4] )
+      A2_org <- (summary(lm(A2~Z))$coefficients[2,4] )
+      A3_org <- (summary(lm(A3~Z))$coefficients[2,4] )
+      A2_org <- (summary(lm(A2~Z))$coefficients[2,4] )
+      
+      ZAY <- (summary(lm(Y~Z+A))$coefficients[2,4] )
+      
+      Z_ = Z
+      Z_[i] = 1- Z_[i]
+      
+      A_org_ <- (summary(lm(A~Z_))$coefficients[2,4] )
+      A2_org_ <- (summary(lm(A2~Z_))$coefficients[2,4] )
+      A3_org_ <- (summary(lm(A3~Z_))$coefficients[2,4] )
+      
+      ZAY_ <- (summary(lm(Y~Z_+A))$coefficients[2,4] )
+      
+      if (A_org_ < min(0.01,A_org) & ZAY_ < min(0.01,ZAY) & A2_org_ >= min(0.75,A2_org) & A3_org_ >= min(0.75,A3_org)) {
+        Z = Z_
+        g = g + 1
+        #  print("updated")
+      }
+      if (A_org_ < 0.01 & ZAY_ < 0.01 & A2_org_ >= (0.75) & A3_org_ >= (0.75)) {
+        break
+      }
+    }
+  }
+  
+  summary(lm(A~Z))
+  summary(lm(A2~Z))
+  summary(lm(A3~Z))
+  
+  par(mfrow=c(2,1))
+  
+  (ZA <- coef(lm(A~Z))[2])
+  (ZY <- coef(lm(Y~Z))[2])
+  ZY/ZA
+  est[run] <- ZY/ZA
+  hist(est,breaks = 50)
+  abline(v=mean(est),lwd=5,col="dodgerblue")
+  abline(v=true,lwd=5,col="red")
+  if (run > 1) print(t.test(est,m=true))
+  
+  alt[run] <- coef(lm(Y~A+A2+A3))[2]
+  hist(alt,breaks = 50)
+  abline(v=mean(alt),lwd=5,col="dodgerblue")
+  abline(v=true,lwd=5,col="red")
+#  if (run > 1) print(t.test(alt,m=true))
+}
+
+
+  
+###################### ONLY RANDOM Z ##########
+  
+est = NA
+alt = NA
+for (run in 1:100) {
+    print(paste("Run:",run))
+    n = 10000
+    U = sample(1:0,n,replace=T)
+    A=NA
+    for (i in 1:n) {
+      A[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+    }
+    Y=NA
+    for (i in 1:n) {
+      Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.05*(A[i] == 1),1-(.2+.2*(U[i]==1)+.05*(A[i] == 1))),replace=T)
+    }
+    summary(lm(Y~A))
+    summary(lm(Y~A+U)) # direct and indirect
+    # We want to estimate the total of 0.06
+    #results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+    
+    Z = sample(1:0,n,replace=T)
+    g = 100
+    while (g >0) {
+      print (g)
+      g = 0
+      for (i in 1:n) {
+        #if (i / 10 == i %/%10) print(i)
+        A_org <- (summary(lm(A~Z))$coefficients[2,4] )
+        ZYA <-  (summary(lm(Y~Z+A))$coefficients[2,4] )
+        
+        Z_ = Z
+        Z_[i] = 1- Z_[i]
+        
+        A_org_ <- (summary(lm(A~Z_))$coefficients[2,4] )
+        ZYA_ <-  (summary(lm(Y~Z+A))$coefficients[2,4] )
+        
+        if (A_org_ < max(0.01,A_org) & ZYA_ >= min(0.5,ZYA)) {
+          Z = Z_
+          g = g + 1
+          print("updated")
+        }
+      }
+      if (A_org_ < 0.01 & ZYA_ >= 0.5) {
+          break        
+      }
+    }
+    par(mfrow=c(2,1))
+    
+    (ZA <- coef(lm(A~Z))[2])
+    (ZY <- coef(lm(Y~Z))[2])
+    ZY/ZA
+    est[run] <- ZY/ZA
+    hist(est,breaks = 50)
+    abline(v=mean(est),lwd=5,col="dodgerblue")
+    abline(v=0.5,lwd=5,col="red")
+    if (run > 1) print(t.test(est,m=0.5))
+    
+    alt[run] <- coef(lm(Y~A))[2]
+    hist(alt,breaks = 50)
+    abline(v=mean(alt),lwd=5,col="dodgerblue")
+    abline(v=0.5,lwd=5,col="red")
+    if (run > 1) print(t.test(alt,m=0.5))
+  }
+  
+
+
+
+
+
+
+
+####### !Causes! #########
+
+est = NA
+alt = NA
+for (run in 1:100) {
+  print(paste("Run:",run))
+n = 1000
+U = sample(1:0,n,replace=T)
+A=NA
+for (i in 1:n) {
+  A[i] = sample(1:0,1,prob=c(.2+.3*(U[i]==1),1-(.2+.3*(U[i]==1))),replace=T)
+}
+
+Y=NA
+for (i in 1:n) {
+  Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.15*(A[i] == 1),1-(.2+.2*(U[i]==1)+.15*(A[i] == 1))),replace=T)
+}
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+# We want to estimate the total of 0.06
+#results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+
+  Z = sample(1:0,n,replace=T,prob=c(.01,.99))
+  E = sample(1:0,n,replace=T,prob=c(.01,.99))
+
+  # g = 1
+  # while (T) {
+  #   print (g)
+  #   g = 0
+    for (i in 1:n) {
+    #  print(i)
+      #if (i / 10 == i %/%10) print(i)
+      Z_A <- (summary(lm(A~Z))$coefficients[2,1] )
+      E_A <- (summary(lm(A~E))$coefficients[2,1] )
+      Z_E <- (summary(lm(E~Z))$coefficients[2,1] )
+      Z_ = Z
+      Z_[i] = 1- Z_[i]
+      Z_A_ <- (summary(lm(A~Z_))$coefficients[2,1] )
+      E_A_ <- (summary(lm(A~E))$coefficients[2,1] )
+      Z_E_ <- (summary(lm(E~Z_))$coefficients[2,1] )
+      if (Z_A_ >= min(0.5,Z_A) ) {
+        Z = Z_
+        g = g + 1
+        print(i)
+      }
+    }
+    for (i in 1:n) {
+      #  print(i)
+      #if (i / 10 == i %/%10) print(i)
+      Z_A <- (summary(lm(A~Z))$coefficients[2,1] )
+      E_A <- (summary(lm(A~E))$coefficients[2,1] )
+      Z_E <- (summary(lm(E~Z))$coefficients[2,1] )
+      E_ = E
+      E_[i] = 1- E_[i]
+      Z_A_ <- (summary(lm(A~Z))$coefficients[2,1] )
+      E_A_ <- (summary(lm(A~E_))$coefficients[2,1] )
+      Z_E_ <- (summary(lm(E_~Z))$coefficients[2,1] )
+      if (E_A_ >= min(0.5,E_A)) {
+        E = E_
+        g = g + 1
+        print(i)
+      }
+    }
+  for (i in 1:n) {
+    #  print(i)
+    #if (i / 10 == i %/%10) print(i)
+    Z_A <- (summary(lm(A~Z))$coefficients[2,1] )
+    E_A <- (summary(lm(A~E))$coefficients[2,1] )
+    Z_E <- (summary(lm(E~Z))$coefficients[2,1] )
+    Z_ = Z
+    Z_[i] = 1- Z_[i]
+    Z_A_ <- (summary(lm(A~Z_))$coefficients[2,1] )
+    E_A_ <- (summary(lm(A~E))$coefficients[2,1] )
+    Z_E_ <- (summary(lm(E~Z_))$coefficients[2,1] )
+    if (abs(Z_E_) <= max(0.01,abs(Z_E))) {
+      Z = Z_
+      g = g + 1
+      print(i)
+    }
+  }  
+  
+    
+summary(lm(A~Z))
+summary(lm(A~E))
+summary(lm(E~Z))
+
+Z <- 1-Z
+  
+par(mfrow=c(2,1))
+  
+  (ZA <- coef(lm(A~Z))[2])
+  (ZY <- coef(lm(Y~Z))[2])
+  ZY/ZA
+  est[run] <- ZY/ZA
+  hist(est,breaks = 50)
+  abline(v=mean(est),lwd=5,col="dodgerblue")
+  abline(v=true,lwd=5,col="red")
+  if (run > 1) print(t.test(est,m=true))
+  
+  alt[run] <- coef(lm(Y~A+A2+A3))[2]
+  hist(alt,breaks = 50)
+  abline(v=mean(alt),lwd=5,col="dodgerblue")
+  abline(v=true,lwd=5,col="red")
+  #  if (run > 1) print(t.test(alt,m=true))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+n = 5000
+U = sample(1:0,n,replace=T)
+A=NA
+for (i in 1:n) {
+  A[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+}
+Y=NA
+for (i in 1:n) {
+  Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.05*(A[i] == 1),1-(.2+.2*(U[i]==1)+.05*(A[i] == 1))),replace=T)
+}
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+A_0 <- A
+for (i in 1:n) {
+  if (sample(1:0,1,prob=c(0.1,0.9))==1) {
+    A[i] = sample(1:0,1)
+  } }
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+# We want to estimate the total of 0.06
+#results[run,1] <- coef(lm(Y~Z+U))[2] # total effect
+
+Z = sample(1:0,n,replace=T)
+g = 100
+for (f in 1:2) {
+  print (g)
+  g = 0
+  for (i in 1:n) {
+    if (i / 100 == i %/%100) print(i)
+    A_org <- (summary(lm(A~Z))$coefficients[2,4] )
+    ZYA <-  (summary(lm(Y~Z+A))$coefficients[2,4] )
+    
+    Z_ = Z
+    Z_[i] = 1- Z_[i]
+    
+    A_org_ <- (summary(lm(A~Z_))$coefficients[2,4] )
+    ZYA_ <-  (summary(lm(Y~Z+A))$coefficients[2,4] )
+    
+    if (A_org_ < max(0.001,A_org)) { #} & ZYA_ >= min(0.7,ZYA)) {
+      Z = Z_
+      g = g + 1
+#      print("updated")
+    }
+  }
+  if (A_org_ < 0.01 & ZYA_ >= 0.5) {
+    break        
+  }
+}
+
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+summary(lm(A~Z))
+Z <- 1-Z
+summary(lm(U~Z))
+summary(lm(Y~Z))
+library(FactoMineR)
+fit <- PCA(cbind(Z,A_0))
+L <- fit$ind$coord[,1]
+summary(lm(A_0~Z + L))
+summary(lm(A_0~L))
+summary(lm(U~L))
+summary(lm(Y~L))
+
+coef(lm(Y~L+A))[2] / coef(lm(A_0~L+A))[2]
+
+
+
+### BLESSING OF MULTIPLE CAUSES ######
+par(mfrow=c(1,1))
+t <- NA
+r <- NA
+nav <- NA
+m <- NA
+r2 <- NA
+all <- NA
+for (g in 1:100) {
+  print(g)
+# blessing of multiple causes
+n = 50000
+U = sample(1:0,n,replace=T)
+A=NA
+for (i in 1:n) {
+  A[i] = sample(1:0,1,prob=c(.2+.1*(U[i]==1),1-(.2+.1*(U[i]==1))),replace=T)
+}
+L=NA
+for (i in 1:n) {
+  L[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1),1-(.2+.2*(U[i]==1))),replace=T)
+}
+L2=NA
+for (i in 1:n) {
+  L2[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1),1-(.2+.2*(U[i]==1))),replace=T)
+}
+L3=NA
+for (i in 1:n) {
+  L3[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1),1-(.2+.2*(U[i]==1))),replace=T)
+}
+L4=NA
+for (i in 1:n) {
+  L4[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1),1-(.2+.2*(U[i]==1))),replace=T)
+}
+L5=NA
+for (i in 1:n) {
+  L5[i] = sample(1:0,1,prob=c(.2+.02*(U[i]==1),1-(.2+.02*(U[i]==1))),replace=T)
+}
+Y=NA
+for (i in 1:n) {
+  Y[i] = sample(1:0,1,prob=c(.2+.2*(U[i]==1)+.05*(A[i] == 1),1-(.2+.2*(U[i]==1)+.05*(A[i] == 1))),replace=T)
+}
+summary(lm(Y~A))
+summary(lm(Y~A+U)) # direct and indirect
+
+library(FactoMineR)
+fit <- PCA(cbind(A,L,L2,L3,L4,L5))
+Z <- fit$ind$coord[,1]
+r[g] <- coef(lm(Y~A+Z))[2]
+t[g] <- coef(lm(Y~A+U))[2]
+nav[g] <- coef(lm(Y~A))[2]
+m[g] <- coef(lm(Y~A+L+L2+L3+L4+L5))[2]
+all[g] <- coef(lm(Y~A+Z+L+L2+L3+L4+L5))
+fit <- PCA(cbind(A,L))
+Z <- fit$ind$coord[,1]
+r2[g] <- coef(lm(Y~A+Z))[2]
+plot(0,0,xlim=range(t),ylim=range(c(r,nav,m,r2)),type='n')
+points(t,r,pch=16,col="dodgerblue")
+points(t,nav,pch=16,col="red")
+points(t,m,pch=16,col="green")
+points(t,r2,pch=16,col="black")
+points(t,all,pch=16,col="grey")
+abline(0,1)
+}
+
+###  2 BLESSING OF MULTIPLE CAUSES ######
+par(mfrow=c(1,1))
+t <- NA
+r <- NA
+nav <- NA
+m <- NA
+r2 <- NA
+all <- NA
+m1 <- NA
+ipw <- NA
+for (g in 1:1000) {
+  print(g)
+  # blessing of multiple causes
+  n = 100000
+  SD = 0.1
+  U = sample(1:0,n,replace=T)
+  A=NA
+  A_eff = 10
+  while (abs(A_eff) > 0.4 | abs(A_eff) < 0.05) A_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    A[i] = sample(1:0,1,prob=c(.5+A_eff*(U[i]==1),1-(.5+A_eff*(U[i]==1))),replace=T)
+  }
+  L=NA
+  L_eff = 10
+  while (abs(L_eff) > 0.4 | abs(L_eff) < 0.05) L_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    L[i] = sample(1:0,1,prob=c(.5+L_eff*(U[i]==1),1-(.5+L_eff*(U[i]==1))),replace=T)
+  }
+  L2=NA
+  L2_eff = 10
+  while (abs(L2_eff) > 0.4 | abs(L2_eff) < 0.05) L2_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    L2[i] = sample(1:0,1,prob=c(.5+L2_eff*(U[i]==1),1-(.5+L2_eff*(U[i]==1))),replace=T)
+  }
+  L3=NA
+  L3_eff = 10
+  while (abs(L3_eff) > 0.4 | abs(L3_eff) < 0.05) L3_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    L3[i] = sample(1:0,1,prob=c(.5+L3_eff*(U[i]==1),1-(.5+L3_eff*(U[i]==1))),replace=T)
+  }
+  L4=NA
+  L4_eff = 10
+  while (abs(L4_eff) > 0.4 | abs(L4_eff) < 0.05) L4_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    L4[i] = sample(1:0,1,prob=c(.5+L4_eff*(U[i]==1),1-(.5+L4_eff*(U[i]==1))),replace=T)
+  }
+  L5=NA
+  L5_eff = 10
+  while (abs(L5_eff) > 0.4 | abs(L5_eff) < 0.05) L5_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    L5[i] = sample(1:0,1,prob=c(.5+L5_eff*(U[i]==1),1-(.5+L5_eff*(U[i]==1))),replace=T)
+  }
+  Y=NA
+  Y_eff = 10
+  while (abs(Y_eff) > 0.4 | abs(Y_eff) < 0.05) Y_eff <- rnorm(1,0,SD)
+  U_eff = 10
+  while (abs(U_eff) > 0.4 | abs(U_eff) < 0.05) U_eff <- rnorm(1,0,SD)
+  for (i in 1:n) {
+    Y[i] = sample(1:0,1,prob=c(.5+U_eff*(U[i]==1)+Y_eff*(A[i] == 1),1-(.5+U_eff*(U[i]==1)+Y_eff*(A[i] == 1))),replace=T)
+  }
+  summary(lm(Y~A))
+  summary(lm(Y~A+U)) # direct and indirect
+  
+  library(FactoMineR)
+  fit <- PCA(cbind(A,L,L2,L3,L4,L5), graph = F)
+  Z <- fit$ind$coord[,1]
+  r[g] <- coef(lm(Y~A+Z))[2]
+  t[g] <- coef(lm(Y~A+U))[2]
+  nav[g] <- coef(lm(Y~A))[2]
+  m[g] <- coef(lm(Y~A+L+L2+L3+L4+L5))[2]
+  all[g] <- coef(lm(Y~A+Z+L+L2+L3+L4+L5))[2]
+  m1[g] <- coef(lm(Y~A+L))[2]
+  fit <- PCA(cbind(A,L), graph = F)
+  Z <- fit$ind$coord[,1]
+  r2[g] <- coef(lm(Y~A+Z))[2]
+  # range(c(r-t,nav-t,m-t,r2-t))
+  ps <- predict(lm(A~L+L2+L3+L4+L5))
+  w <- ifelse(A==1,1/ps,1/(1-ps))
+  ipw[g] <- coef(glm(Y~A,weights = w))[2]
+  plot(0,0,xlim=range(t),ylim=c(0,1),type='n',ylab="Relative bias compared with naive estimate in red",xlab="True effect",
+       main=paste0("5: Better than the proxy estimate ",round(mean(abs(r-t) < abs(m-t))*100),"% of simulations\n1: Better than the proxy estimate ",round(mean(abs(r2-t) < abs(m1-t))*100),"% of simulations"))
+  points(t,abs(m-t)/abs(nav-t),pch=16,col="green")
+  points(t,abs(m1-t)/abs(nav-t),pch=16,col="darkgreen")
+  points(t,abs(r2-t)/abs(nav-t),pch=16,col="black")
+  points(t,abs(all-t)/abs(nav-t),pch=16,col="grey")
+  points(t,abs(ipw-t)/abs(nav-t),pch=16,col="orange")
+  points(t,abs(nav-t)/abs(nav-t),pch=16,col="red")
+  points(t,abs(r-t)/abs(nav-t),pch=16,col="dodgerblue")
+  abline(0,0)
+  abline(h=mean(abs(r-t)/abs(nav-t)),col="dodgerblue")
+  abline(h=mean(abs(all-t)/abs(nav-t)),col="grey")
+  abline(h=mean(abs(r2-t)/abs(nav-t)),col="black")
+  abline(h=mean(abs(ipw-t)/abs(nav-t)),col="orange")
+  abline(h=mean(abs(m-t)/abs(nav-t)),col="green")
+  abline(h=mean(abs(m1-t)/abs(nav-t)),col="darkgreen")
+}

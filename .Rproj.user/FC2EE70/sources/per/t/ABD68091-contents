@@ -731,13 +731,13 @@ dev.off()
 
   ex_mat <- matrix(NA,nrow=100,ncol=3)
 
-  for (run in 1:10) {
+  for (run in 1001:1003) {
 
 #    for (add_noise in seq(0,50,5)) {
 
-      add_noise = 0
+      add_noise = 30
       hidden_nodes = 5
-      run = 1
+#      run = 1001
 
       setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
 
@@ -748,7 +748,7 @@ dev.off()
 
       # Data simulation
       set.seed(run)
-      data <- SRCL_0_synthetic_data(40000) # use 40 000 to replicate the paper
+      data <- SRCL_0_synthetic_data(80000) # use 40 000 to replicate the paper
 
       # Add 5 variables with noise
       var_names <-colnames(data)
@@ -780,19 +780,27 @@ dev.off()
       #Changing number of hidden nodes
       #for (hidden_nodes in 1:5) {
 
-      select <- sample(1:nrow(exposure_data),nrow(exposure_data)/2)
-      exposure_data_train <- exposure_data[select,]
-      exposure_data_test <- exposure_data[-select,]
-      outcome_data_train <- outcome_data[select]
-      outcome_data_test <- outcome_data[-select]
+      # # qualify the parameters
+      # select <- sample(1:nrow(exposure_data),20000)
+      # exposure_data_train <- exposure_data[select,]
+      # exposure_data_test <- exposure_data[-select,]
+      # outcome_data_train <- outcome_data[select]
+      # outcome_data_test <- outcome_data[-select]
+
+      # not-qualify the parameters
+      exposure_data_train <- exposure_data
+      exposure_data_test <- exposure_data
+      outcome_data_train <- outcome_data
+      outcome_data_test <- outcome_data
 
       model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data), output = outcome_data,hidden=hidden_nodes)
-      for (lr_set in c(1e-4,1e-5,1e-6)) {
+#      for (lr_set in c(1e-4,1e-5,1e-6)) {
+      for (lr_set in c(1e-4)) {
         print(paste0("############################## Learning rate: ",lr_set," ##############################"))
         model <- SRCL_2_train_neural_network(X_train = exposure_data_train, Y_train = outcome_data_train,
                                              X_test = exposure_data_test, Y_test = outcome_data_test,
-                                             model,lr = lr_set, epochs=2000,patience = 100,plot_and_evaluation_frequency = 50)
-      }
+                                             model,lr = lr_set, epochs=3000,patience = 200,plot_and_evaluation_frequency = 50)
+            }
 
       # Risk contributions
       r_c <- SRCL_5_layerwise_relevance_propagation(exposure_data,model)
@@ -883,12 +891,17 @@ dev.off()
 
 
       png(paste0("SCL_hiddennodes_",hidden_nodes,"_noise_",add_noise,"_run_",run,".png"),unit="in",res=300,width = 7,height = 8)  ############## REMOVE
-      layout(matrix(c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,6,6,6), 3, 6, byrow = TRUE))
+      layout(matrix(c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,7,7,7,7), 3, 6, byrow = TRUE))
 
       # Performance
       par(mar=c(5,5,2,0))
       plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
-           xlab="Epochs",main="A) Performance")
+           xlab="Epochs",main="A) Performance, train data")
+
+      # Performance on test data
+      par(mar=c(5,5,2,0))
+      plot(model$test_performance, type='l',yaxs='i', ylab="Mean squared error",
+           xlab="Epochs",main="A) Performance, test data")
 
       # Model visualisation
       par(mar=c(0,0,0,0))
@@ -958,7 +971,7 @@ dev.off()
                                   "Risk based on the sum of individual effects =",
                                   format(round(mean(SRCL_6_sum_of_individual_effects(exposure_data,model)[clus==i])*100,1),nsmall=1),
                                   "%"),pos=4,col=colours[i])
-        ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
+       # ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
       }
       m <- max(d)
       ind_effect_matrix <- SRCL_6_individual_effects_matrix(exposure_data,model)
@@ -971,9 +984,9 @@ dev.off()
         text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
       }}
       mtext(paste0("SG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
-                   "SG2= ",round(mean(data$Y[data$Not_physically_active==1&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)
+                   "SG2= ",round(mean(data$Y[data$Physically_active==0&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)
 
       dev.off()
 
-      write.csv(ex_mat,"Excess.csv")
+#      write.csv(ex_mat,"Excess.csv")
     } # Hidden nodes simulation and other sensitivity analyses
