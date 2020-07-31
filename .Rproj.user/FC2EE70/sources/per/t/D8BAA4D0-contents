@@ -728,16 +728,18 @@ dev.off()
 
 
   ############ C++ (No monotonicity...) #################
+  devtools::install_github("ekstroem/SRCL")
+
 
   ex_mat <- matrix(NA,nrow=100,ncol=3)
 
-  for (run in 1001:1003) {
+  for (run in 1:10) {
 
 #    for (add_noise in seq(0,50,5)) {
 
-      add_noise = 30
+      add_noise = 10
       hidden_nodes = 5
-#      run = 1001
+      run = 1
 
       setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
 
@@ -780,26 +782,28 @@ dev.off()
       #Changing number of hidden nodes
       #for (hidden_nodes in 1:5) {
 
-      # # qualify the parameters
-      # select <- sample(1:nrow(exposure_data),20000)
-      # exposure_data_train <- exposure_data[select,]
-      # exposure_data_test <- exposure_data[-select,]
-      # outcome_data_train <- outcome_data[select]
-      # outcome_data_test <- outcome_data[-select]
+      select <- sample(1:nrow(exposure_data),nrow(exposure_data)/2)
+      exposure_data_train <- exposure_data[select,]
+      exposure_data_test <- exposure_data[-select,]
+      outcome_data_train <- outcome_data[select]
+      outcome_data_test <- outcome_data[-select]
 
-      # not-qualify the parameters
-      exposure_data_train <- exposure_data
-      exposure_data_test <- exposure_data
-      outcome_data_train <- outcome_data
-      outcome_data_test <- outcome_data
+       # exposure_data_train <- exposure_data
+       # exposure_data_test <- exposure_data
+       # outcome_data_train <- outcome_data
+       # outcome_data_test <- outcome_data
 
       model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data), output = outcome_data,hidden=hidden_nodes)
-#      for (lr_set in c(1e-4,1e-5,1e-6)) {
-      for (lr_set in c(1e-4)) {
+      for (lr_set in c(1e-4,1e-5,1e-6)) {
+#      for (lr_set in c(1e-4)) {
         print(paste0("############################## Learning rate: ",lr_set," ##############################"))
         model <- SRCL_2_train_neural_network(X_train = exposure_data_train, Y_train = outcome_data_train,
                                              X_test = exposure_data_test, Y_test = outcome_data_test,
-                                             model,lr = lr_set, epochs=3000,patience = 200,plot_and_evaluation_frequency = 50)
+                                             model,lr = lr_set, epochs=2000,
+                                             patience = 100,plot_and_evaluation_frequency = 50,
+                                             L1 =0.00007) # L1 default = 0.00001
+
+  # epochs = 2000
             }
 
       # Risk contributions
@@ -855,7 +859,7 @@ dev.off()
 
 
       # Clustering - using aggregated data - USED - but seems to fail witn noise data.
-      groups =3
+      groups = 3
       library(fastcluster)
       p <- cbind(r_c)
       p <- plyr::count(p)
@@ -893,20 +897,19 @@ dev.off()
       png(paste0("SCL_hiddennodes_",hidden_nodes,"_noise_",add_noise,"_run_",run,".png"),unit="in",res=300,width = 7,height = 8)  ############## REMOVE
       layout(matrix(c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,7,7,7,7), 3, 6, byrow = TRUE))
 
-      # Performance
+      # Performance - trian
       par(mar=c(5,5,2,0))
       plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
-           xlab="Epochs",main="A) Performance, train data")
+           xlab="Epochs",main="A) Performance - train")
 
-      # Performance on test data
+      # Performance - test
       par(mar=c(5,5,2,0))
       plot(model$test_performance, type='l',yaxs='i', ylab="Mean squared error",
-           xlab="Epochs",main="A) Performance, test data")
+           xlab="Epochs",main="A) Performance - test")
 
       # Model visualisation
       par(mar=c(0,0,0,0))
-      SRCL_3_plot_neural_network(model,names(exposure_data),5/max(model[[1]]))
-      mtext("B)",side=3, line=2,adj = -.0001)
+      SRCL_3_plot_neural_network(model,names(exposure_data),5/max(model[[1]]), title = "C) Model")
 
       # AUC
       library(pROC)
@@ -971,7 +974,7 @@ dev.off()
                                   "Risk based on the sum of individual effects =",
                                   format(round(mean(SRCL_6_sum_of_individual_effects(exposure_data,model)[clus==i])*100,1),nsmall=1),
                                   "%"),pos=4,col=colours[i])
-       # ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
+      #  ex_mat[run,i] <- prev*(risk-mean(r_c$Baseline_risk))/total*100
       }
       m <- max(d)
       ind_effect_matrix <- SRCL_6_individual_effects_matrix(exposure_data,model)
@@ -988,5 +991,36 @@ dev.off()
 
       dev.off()
 
-#      write.csv(ex_mat,"Excess.csv")
+      write.csv(ex_mat,"Excess.csv")
     } # Hidden nodes simulation and other sensitivity analyses
+
+
+
+
+
+
+
+
+
+
+
+  SRCL_0_synthetic_data <- function(n) {
+  #n = 50000
+  V <- sample(1:0,n,replace=T)
+  data <- data.frame(V)
+  for (i in 1:20) {
+  data[,i] <- sample(1:0,n,replace=T)
+  }
+  Y <-  sample(1:0,n,prob=c(0.05,0.95),replace = TRUE)
+    for (i in 1:n) {
+      if (data$V2[i]==1&data$V19[i]==1&data$V10[i]==0&data$V7[i]==0&data$V8[i]==1&data$V3[i]==0& sample(1:0,1,prob=c(.3,0.7)) ) {
+        Y[i] <- 1
+      }}
+  data <- cbind(Y,data)
+  return(data)
+    }
+rm(data)
+data <- SRCL_0_synthetic_data(10000)
+
+
+

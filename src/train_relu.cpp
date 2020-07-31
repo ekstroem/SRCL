@@ -69,7 +69,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
      const arma::vec & IPCW,
 		 double lr=0.01,
 		 double maxepochs = 100,
-     double baseline_risk_reward = 0.00001
+     double L1 = 0.00001
 		 ) {
 
   int nsamples = y.size();
@@ -147,11 +147,11 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {
-        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g));
+        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g) - lr * L1); // L1 regularized - penalized
 }
 
       B1 = rcpprelu_neg(B1 - IPCW(row) * lr * E_outO * (netO_outH % (h>0)));
-      B2 = rcpprelu(B2 - IPCW(row) * lr / 10 *  E_outO + lr * baseline_risk_reward);
+      B2 = rcpprelu(B2 - IPCW(row) * lr / 10 *  E_outO + lr * L1); // inverse L1 regularized - rewarded
 
 
     } // Row
