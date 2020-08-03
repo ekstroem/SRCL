@@ -35,9 +35,9 @@ sum(duplicated(r_c)==FALSE)
 
 # Clustering
 groups =3
-library(fastcluster)
-hc <- hclust(dist(r_c), method="ward.D") # RAM memory intensive
-clus <- cutree(hc, groups)
+#library(fastcluster)
+#hc <- hclust(dist(r_c), method="ward.D") # RAM memory intensive
+#clus <- cutree(hc, groups)
 p <- cbind(r_c,clus)
 p <- plyr::count(p)
 pfreq <- p$freq
@@ -737,7 +737,7 @@ dev.off()
 
 #    for (add_noise in seq(0,50,5)) {
 
-      add_noise = 10
+      add_noise = 0
       hidden_nodes = 5
       run = 1
 
@@ -746,11 +746,11 @@ dev.off()
 
       library(SRCL)
       library(graphics)
-      colours <- c("grey","dodgerblue","red","orange","green")
+      colours <- c("grey","dodgerblue","red","orange","green","yellow","violet")
 
       # Data simulation
       set.seed(run)
-      data <- SRCL_0_synthetic_data(80000) # use 40 000 to replicate the paper
+      data <- SRCL_0_synthetic_data(n=40000) # use 40 000 to replicate the paper
 
       # Add 5 variables with noise
       var_names <-colnames(data)
@@ -782,16 +782,16 @@ dev.off()
       #Changing number of hidden nodes
       #for (hidden_nodes in 1:5) {
 
-      select <- sample(1:nrow(exposure_data),nrow(exposure_data)/2)
-      exposure_data_train <- exposure_data[select,]
-      exposure_data_test <- exposure_data[-select,]
-      outcome_data_train <- outcome_data[select]
-      outcome_data_test <- outcome_data[-select]
+      # select <- sample(1:nrow(exposure_data),nrow(exposure_data)/2)
+      # exposure_data_train <- exposure_data[select,]
+      # exposure_data_test <- exposure_data[-select,]
+      # outcome_data_train <- outcome_data[select]
+      # outcome_data_test <- outcome_data[-select]
 
-       # exposure_data_train <- exposure_data
-       # exposure_data_test <- exposure_data
-       # outcome_data_train <- outcome_data
-       # outcome_data_test <- outcome_data
+       exposure_data_train <- exposure_data
+       exposure_data_test <- exposure_data
+       outcome_data_train <- outcome_data
+       outcome_data_test <- outcome_data
 
       model <- SRCL_1_initiate_neural_network(inputs=ncol(exposure_data), output = outcome_data,hidden=hidden_nodes)
       for (lr_set in c(1e-4,1e-5,1e-6)) {
@@ -928,7 +928,7 @@ dev.off()
       # plot(prcomp(r_c)$x[,1:2],pch=16,col=colours[clus],main="PCA: Biplot",frame.plot=FALSE)
       par(mar=c(4,5,2,1))
       plot(0,0,type='n',xlim=c(0,1),ylim=c(0,max(pred)),xaxs='i',yaxs='i',
-           axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,main="E) Prevalence and mean risk of sub-groups")
+           axes=FALSE,ylab="Risk",xlab="Prevalence",frame.plot=FALSE,main="E) Prevalence and mean risk\nof sub-groups")
       axis(1,seq(0,1,.2));axis(2,seq(0,1,.05))
       rect(0,0,1,1)
       prev0 = 0; total = 0
@@ -984,10 +984,11 @@ dev.off()
                         format(round(mean(ind_effect_matrix[clus==i,g]*100),1),nsmall=1),"%]"
         )
         #  value <- paste0(format(round(as.numeric(quantile(d[i,g],c(0.25,0.75))),2),nsmall=2),collapse = "-")
-        text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+        #text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+        text(-g,-i,value,col=adjustcolor(ifelse(d[i,g] <0.005,"white",colours[i]),1),cex=st)
       }}
-      mtext(paste0("SG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
-                   "SG2= ",round(mean(data$Y[data$Physically_active==0&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)
+   #   mtext(paste0("SG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
+  #                 "SG2= ",round(mean(data$Y[data$Physically_active==0&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)
 
       dev.off()
 
@@ -999,11 +1000,32 @@ dev.off()
 
 
 
+#### Working example #####
+
+
+  SRCL_0_synthetic_data <- function(n) {
+    #n = 20000
+    drug_a = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+    sex = sample(1:0,n,prob=c(0.5,0.5),replace=TRUE)
+    drug_b = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+    Y <-  sample(1:0,n,prob=c(0.05,0.95),replace = TRUE)
+    for (i in 1:n) {
+      if (sex[i] == 0 & drug_a[i] == 1 & sample(1:0,1,prob=c(.15,0.8)) ) {
+        Y[i] <- 1
+      }
+      if (sex[i] == 1 & drug_b[i] == 1 & sample(1:0,1,prob=c(.15,0.85)) ) {
+        Y[i] <- 1
+      }
+    }
+    data <- data.frame(Y,sex,drug_a,drug_b) #,C)
+    for (i in 1:ncol(data))   data[,i] <- as.numeric(data[,i])
+    return(data)
+  }
 
 
 
 
-
+#### Rare combinations ####
   SRCL_0_synthetic_data <- function(n) {
   #n = 50000
   V <- sample(1:0,n,replace=T)
@@ -1021,6 +1043,63 @@ dev.off()
     }
 rm(data)
 data <- SRCL_0_synthetic_data(10000)
+
+#### Example with all structures ####
+SRCL_0_synthetic_data <- function(n) {
+#  n = 50000
+  Y <-  sample(1:0,n,prob=c(0.02,0.98),replace = TRUE)
+  # Interaction
+  X1 <- sample(1:0,n,replace=T,prob = c(.1,.9))
+  X2 <- sample(1:0,n,replace=T,prob = c(.1,.9))
+for (i in 1:n){if (X1[i]==1&X2[i]==1& sample(1:0,1,prob = c(0.3,0.7))) {Y[i] <- 1}}
+  X3 <- sample(1:0,n,replace=T,prob = c(.1,.9)) # noise
+
+    # Clustered
+  U <- sample(1:0,n,replace=T,prob = c(.5,.5))
+  X4 = NA; X5 =NA
+for(i in 1:n) {
+  X4[i] <- sample(1:0,1,replace=T,prob = c(.05+.3*U[i],1-.05+.3*U[i]))
+  X5[i] <- sample(1:0,1,replace=T,prob = c(.05+.3*U[i],1-.05+.3*U[i]))
+  }
+for (i in 1:n){if (X4[i]==1& sample(1:0,1,prob=c(.1,0.9)) ) {Y[i] <- 1}}
+for (i in 1:n){if (X5[i]==1& sample(1:0,1,prob=c(.1,0.9)) ) {Y[i] <- 1}}
+  X6 <- sample(1:0,n,replace=T,prob = c(.1,.9)) # noise
+
+    # Mediation
+  X7 <- sample(1:0,n,replace=T,prob = c(.1,.9))
+  X8 = NA
+for(i in 1:n) {X8[i] <- sample(1:0,1,replace=T,prob = c(.05+.4*X7[i],1-.05+.4*X7[i]))}
+  for (i in 1:n){if (X7[i]==1& sample(1:0,1,prob=c(.2,0.8)) ) {Y[i] <- 1}}
+  for (i in 1:n){if (X8[i]==1& sample(1:0,1,prob=c(.1,0.9)) ) {Y[i] <- 1}}
+  X9 <- sample(1:0,n,replace=T,prob = c(.1,.9)) # noise
+
+    # Confounding
+  C <- sample(1:0,n,replace=T,prob = c(.2,.8))
+  X10 =NA; X11 = NA
+  for(i in 1:n) {
+    X10[i] <- sample(1:0,1,replace=T,prob = c(.05+.3*C[i],1-.05+.3*C[i]))
+    X11[i] <- sample(1:0,1,replace=T,prob = c(.05+.3*C[i],1-.05+.3*C[i]))
+  }
+  for (i in 1:n){if (C[i]==1& sample(1:0,1,prob=c(.05,0.95)) ) {Y[i] <- 1}}
+  X12 <- sample(1:0,n,replace=T,prob = c(.1,.9)) # noise
+
+    # M-bias
+  U2 <- sample(1:0,n,replace=T,prob = c(.2,.8))
+  X13 <- sample(1:0,n,replace=T,prob = c(.1,.9)) # noise
+  X14 <- sample(1:0,n,replace=T,prob = c(.1,.9)) # noise
+  X15 =NA
+  for(i in 1:n) {
+    X15[i] <- sample(1:0,1,replace=T,prob = c(.02+.3*U2[i]+.3*X13[i]+.3*X14[i],1-.02+.3*U2[i]+.3*X13[i]+.3*X14[i]))
+  }
+  for (i in 1:n){if (U2[i]==1& sample(1:0,1,prob=c(.1,0.9)) ) {Y[i] <- 1}}
+
+  data <- data.frame(cbind(Y,X1,X2,X3,X4,X5,X6,X7,X8,X9,X10,X11,X12,X13,X14,X15))
+  return(data.frame(data))
+}
+rm(data)
+rm(SRCL_0_synthetic_data)
+data <- SRCL_0_synthetic_data(10000)
+
 
 
 

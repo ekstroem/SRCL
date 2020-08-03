@@ -147,7 +147,7 @@ Rcpp::List SRCL_cpp_train_network_relu(
 
       // All calculations done. Now do the updating
       for (size_t g=0; g<W1.n_rows; g++) {
-        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g) - lr * L1); // L1 regularized - penalized
+        W1.row(g) = rcpprelu(W1.row(g) - IPCW(row) * lr * E_outO * (netO_outH % (h>0)) * x(row, g)); // - lr * L1); // L1 regularized - penalized
 }
 
       B1 = rcpprelu_neg(B1 - IPCW(row) * lr * E_outO * (netO_outH % (h>0)));

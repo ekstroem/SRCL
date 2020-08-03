@@ -205,6 +205,31 @@ SRCL_0_synthetic_data <- function(n) {
   return(data)
 }
 
+#' CoOL working example with sex, drug A, and drug B
+#'
+#' To reproduce the CoOL working example with sex, drug A, and drug B.
+#'
+#' @param n number of observations for the synthetic data
+
+SRCL_0_working_example <- function(n) {
+  drug_a = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+  sex = sample(1:0,n,prob=c(0.5,0.5),replace=TRUE)
+  drug_b = sample(1:0,n,prob=c(0.2,0.8),replace=TRUE)
+  Y <-  sample(1:0,n,prob=c(0.05,0.95),replace = TRUE)
+  for (i in 1:n) {
+    if (sex[i] == 0 & drug_a[i] == 1 & sample(1:0,1,prob=c(.15,0.8)) ) {
+      Y[i] <- 1
+    }
+    if (sex[i] == 1 & drug_b[i] == 1 & sample(1:0,1,prob=c(.15,0.85)) ) {
+      Y[i] <- 1
+    }
+  }
+  data <- data.frame(Y,sex,drug_a,drug_b) #,C)
+  for (i in 1:ncol(data))   data[,i] <- as.numeric(data[,i])
+  return(data)
+}
+
+
 
 
 #' Initiates a monotonistc neural network
