@@ -740,14 +740,16 @@ dev.off()
       add_noise = 0
       hidden_nodes = 5
       run = 1
-
+      
       setwd("C:/Users/lvb917/Google Drev/gdrive - SCL/Manuscripts/Epi paper/Figures/Redo")
 
 
       library(SRCL)
       library(graphics)
-      colours <- c("grey","dodgerblue","red","orange","green","yellow","violet")
-
+      library(wesanderson)
+      #colours <- c("grey","dodgerblue","red","orange","green","yellow","violet")
+      colours <- c("grey",wes_palette("Darjeeling1"))
+      
       # Data simulation
       set.seed(run)
       data <- SRCL_0_synthetic_data(n=40000) # use 40 000 to replicate the paper
@@ -859,28 +861,44 @@ dev.off()
 
 
       # Clustering - using aggregated data - USED - but seems to fail witn noise data.
+      # groups = 3
+      # library(fastcluster)
+      # p <- cbind(r_c)
+      # p <- plyr::count(p)
+      # pfreq <- p$freq
+      # p <- p[,-c(ncol(p))]
+      # p_h_c <- hclust(dist(p, method = "manhattan"),method = "ward.D2", members=pfreq)
+      # pclus <- cutree(p_h_c, groups)
+      # id <- 1:nrow(r_c)
+      # temp <- merge(cbind(id,r_c),cbind(p,pclus))
+      # clus <- temp$pclus[order(temp$id)]
+      # table(clus)
+      # 
+      # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D2")
+      # clus_test <- cutree(hc, groups) # Gruppering p? al data
+      # table(clus,clus_test) # NOT CONSISTENT
+
+      # Correct weighting using hclustgeo
+      # Clustering - using aggregated data - USED - but seems to fail witn noise data.
       groups = 3
       library(fastcluster)
+      library(ClustGeo)
       p <- cbind(r_c)
       p <- plyr::count(p)
       pfreq <- p$freq
       p <- p[,-c(ncol(p))]
-      p_h_c <- hclust(dist(p, method = "manhattan"),method = "ward.D", members=pfreq)
+      p_h_c <- hclustgeo(dist(p,method = "manhattan"), wt=pfreq)
+      #p_h_c <- hclust(dist(p, method = "manhattan"),method = "ward.D2", members=pfreq)
       pclus <- cutree(p_h_c, groups)
       id <- 1:nrow(r_c)
       temp <- merge(cbind(id,r_c),cbind(p,pclus))
       clus <- temp$pclus[order(temp$id)]
       table(clus)
-      # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
+      # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D2")
       # clus_test <- cutree(hc, groups) # Gruppering p? al data
-      # table(clus,clus_test)
+      # table(clus,clus_test) # CONSISTENT
 
-      # groups =3
-      # library(fastcluster)
-      # hc <- hclust(dist(r_c, method = "manhattan"),method = "ward.D")
-      # clus <- cutree(hc, groups)
-
-
+      
       par(mfrow=c(1,1))
       par(mar=c(5,5,5,5))
       library(ggtree)
@@ -895,21 +913,21 @@ dev.off()
 
 
       png(paste0("SCL_hiddennodes_",hidden_nodes,"_noise_",add_noise,"_run_",run,".png"),unit="in",res=300,width = 7,height = 8)  ############## REMOVE
-      layout(matrix(c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,7,7,7,7), 3, 6, byrow = TRUE))
+      layout(matrix(c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,6,6,6), 3, 6, byrow = TRUE))
 
       # Performance - trian
       par(mar=c(5,5,2,0))
       plot(model$train_performance, type='l',yaxs='i', ylab="Mean squared error",
-           xlab="Epochs",main="A) Performance - train")
+           xlab="Epochs",main="A) Performance - training data")
 
       # Performance - test
-      par(mar=c(5,5,2,0))
-      plot(model$test_performance, type='l',yaxs='i', ylab="Mean squared error",
-           xlab="Epochs",main="A) Performance - test")
+#      par(mar=c(5,5,2,0))
+#      plot(model$test_performance, type='l',yaxs='i', ylab="Mean squared error",
+#           xlab="Epochs",main="A) Performance - test")
 
       # Model visualisation
       par(mar=c(0,0,0,0))
-      SRCL_3_plot_neural_network(model,names(exposure_data),5/max(model[[1]]), title = "C) Model")
+      SRCL_3_plot_neural_network(model,names(exposure_data),5/max(model[[1]]), title = "B) Model")
 
       # AUC
       library(pROC)
@@ -984,8 +1002,8 @@ dev.off()
                         format(round(mean(ind_effect_matrix[clus==i,g]*100),1),nsmall=1),"%]"
         )
         #  value <- paste0(format(round(as.numeric(quantile(d[i,g],c(0.25,0.75))),2),nsmall=2),collapse = "-")
-        #text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
-        text(-g,-i,value,col=adjustcolor(ifelse(d[i,g] <0.005,"white",colours[i]),1),cex=st)
+        text(-g,-i,value,col=adjustcolor(colours[i],d[i,g]/m),cex=st*d[i,g]/m)
+        #text(-g,-i,value,col=adjustcolor(ifelse(d[i,g] <0.005,"white",colours[i]),1),cex=st)
       }}
    #   mtext(paste0("SG1= ",round(mean(data$Y[data$Air_pollution==1&data$Mutation_X==1])*100,1),"%, ",
   #                 "SG2= ",round(mean(data$Y[data$Physically_active==0&data$LDL==1&data$Night_shifts==1])*100,1),"%"),side=1,line=-1,cex=.7)

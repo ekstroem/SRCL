@@ -75,6 +75,13 @@ Rcpp::List SRCL_cpp_train_network_relu(
   int nsamples = y.size();
   int nfeatures = x.n_cols;
   int hidden = W1_input.n_cols;
+  int sparse_data = 0;
+
+  double sum = 0;
+  for(size_t i = 0; i < nsamples; i++) {
+  sum = sum + y(i);
+  }
+  double mean_y = sum / nsamples;
 
   Rprintf("%s \n", "SRCL");
 
@@ -191,8 +198,21 @@ Rcpp::List SRCL_cpp_train_network_relu(
     trainperf(epoch) = mean_perform;
     testperf(epoch) = mean_val_perform;
 
+
+  if (B2(0,0) == 0) {
+    sparse_data = 1;
+  }
+
  if (epoch % 10 == 0) {
       Rprintf("%d epochs: Train performance of %f. Test performance of %f. Baseline risk estimated to %f.\n",epoch, mean_perform, mean_val_perform, B2(0,0));
+  // Warnings:
+  if (B2(0,0) > mean_y) {
+  Rprintf("Warning: The baseline risk (%f) is higher than mean(Y) (%f)! Consider reducing the regularisation of the baseline risk.\n", B2(0,0), mean_y);
+   }
+
+  if (sparse_data == 1) {
+  Rprintf("Warning: The baseline risk (%f) has at one time been estimated to zero. Data may be too sparse.\n", B2(0,0));
+   }
    }
 
 
